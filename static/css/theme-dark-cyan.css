@@ -1,0 +1,19 @@
+body {
+  background: #0e2233;
+  color: #e0f7fa;
+}
+a { color: #4dd0e1; }
+button, input, select {
+  background: #0097a7;
+  color: #e0f7fa;
+  border: 1px solid #00bcd4;
+}
+header, nav, footer {
+  background: #00838f;
+}
+hr { border-color: #00bcd4; }
+/* 可继续补充全局和常用元素样式 */
+
+
+
+

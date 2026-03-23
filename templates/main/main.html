@@ -30,9 +30,25 @@
         {% if t_theme == 'black' %}
         <link href="../static/css/black_theme.css" rel="stylesheet">
         {% endif %}
+        <link id="theme-style" rel="stylesheet" href="/static/css/theme-dark-black.css">
     </head>
 
     <body>
+    <div id="theme-switcher" style="position:fixed;top:10px;right:10px;z-index:9999;">
+      <button onclick="setTheme('black')">黑色主题</button>
+      <button onclick="setTheme('cyan')">青色主题</button>
+    </div>
+    <script>
+      function setTheme(theme) {
+        let href = '/static/css/theme-dark-' + theme + '.css';
+        document.getElementById('theme-style').setAttribute('href', href);
+        localStorage.setItem('theme', theme);
+      }
+      (function() {
+        let theme = localStorage.getItem('theme') || 'black';
+        setTheme(theme);
+      })();
+    </script>
         <h1>Subsystem</h1>
         <div class="title">
             <a href="/reciter"> Reciter </a>
