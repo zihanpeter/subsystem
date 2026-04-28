@@ -1,3 +1,9 @@
 /.idea
 /.venv
+__pycache__/
+**/__pycache__/
+*.pyc
 **/.DS_Store
+/secrets/*.txt
+/secrets/*.env
+!/secrets/.gitkeep

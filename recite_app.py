@@ -2,13 +2,13 @@ from flask import render_template, request, session, redirect, Blueprint, abort
 import uuid
 import time
 from lib import dbConnecter, defender
-import os
+from lib.config_reader import read_secret
 
 from user_app import user_app
 
 recite_app = Blueprint('recite_app', __name__)
 # recite_app.secret_key = os.urandom(24)
-recite_app.secret_key = os.getenv('SECRET_KEY')
+recite_app.secret_key = read_secret('flask_secret_key.txt')
 # client = pymongo.MongoClient()
 # db = client.reciter
 

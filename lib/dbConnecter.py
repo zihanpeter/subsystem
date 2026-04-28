@@ -1,5 +1,6 @@
 import mysql.connector
-import os
+from pathlib import Path
+from lib.config_reader import read_secret, read_secret_optional
 
 
 '''
@@ -18,12 +19,13 @@ CREATE TABLE table_name (
 '''
 
 def connect_to_db():
+    default_host = 'mysql' if Path('/.dockerenv').exists() else 'localhost'
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password=os.getenv('MYSQL_PASSWORD'),
+        host=read_secret_optional('mysql_host.txt', default_host),
+        user=read_secret_optional('mysql_user.txt', 'root'),
+        password=read_secret('mysql_password.txt'),
         # password="my_password",
-        database='subsystem'
+        database=read_secret_optional('mysql_database.txt', 'subsystem')
     )
 
 def genPlaceholder(valuename):
