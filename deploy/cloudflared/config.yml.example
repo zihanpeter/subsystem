@@ -1,7 +1,0 @@
-tunnel: <your-tunnel-uuid>
-credentials-file: C:\Users\<your-user>\.cloudflared\<your-tunnel-uuid>.json
-
-ingress:
-  - hostname: <your-subdomain.example.com>
-    service: http://127.0.0.1:5050
-  - service: http_status:404

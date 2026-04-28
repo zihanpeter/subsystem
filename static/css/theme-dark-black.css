@@ -1,166 +1,19 @@
-/* 仅 main.html 引入：主页深色（黑）主题布局与令牌 */
-
-:root {
-  --home-bg: #0c0c0d;
-  --home-bg-mid: #141416;
-  --home-text: #ececec;
-  --home-muted: #8f8f95;
-  --home-accent: #5dcdf3;
-  --home-accent-hover: #9ae4ff;
-  --home-surface: rgba(255, 255, 255, 0.045);
-  --home-surface-strong: rgba(255, 255, 255, 0.07);
-  --home-border: rgba(255, 255, 255, 0.09);
-  --home-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-  --home-radius-lg: 16px;
-  --home-radius-pill: 999px;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  background: radial-gradient(1000px 520px at 15% -8%, rgba(93, 205, 243, 0.14), transparent 52%),
-    radial-gradient(800px 420px at 95% 5%, rgba(129, 212, 250, 0.07), transparent 48%),
-    linear-gradient(180deg, var(--home-bg) 0%, var(--home-bg-mid) 100%);
-  color: var(--home-text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0;
-  padding: 5rem 1.25rem 2.5rem;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+  background: #181818;
+  color: #f5f5f5;
 }
+a { color: #4fc3f7; }
+button, input, select {
+  background: #222;
+  color: #f5f5f5;
+  border: 1px solid #444;
+}
+header, nav, footer {
+  background: #222;
+}
+hr { border-color: #444; }
+/* 可继续补充全局和常用元素样式 */
 
-body > h1 {
-  margin: 0 0 0.5rem;
-  text-align: center;
-  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  color: var(--home-text);
-}
 
-.title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem 0.1rem;
-  margin: 0 auto 2.25rem;
-  max-width: 52rem;
-  padding: 0.55rem 1rem;
-  background: var(--home-surface);
-  border: 1px solid var(--home-border);
-  border-radius: var(--home-radius-pill);
-  font-size: 0.9375rem;
-  color: var(--home-muted);
-}
 
-.title a {
-  color: var(--home-accent);
-  text-decoration: none;
-  padding: 0.4rem 0.7rem;
-  border-radius: var(--home-radius-pill);
-  transition: background 0.15s ease, color 0.15s ease;
-  margin: 0;
-}
 
-.title a:hover {
-  background: rgba(93, 205, 243, 0.14);
-  color: var(--home-accent-hover);
-}
-
-.text_show {
-  max-width: 52rem;
-  width: 100%;
-  margin: 0 auto 2.5rem;
-  padding: 1.75rem 2rem;
-  background: var(--home-surface-strong);
-  border: 1px solid var(--home-border);
-  border-radius: var(--home-radius-lg);
-  box-shadow: var(--home-shadow);
-  line-height: 1.75;
-}
-
-.text_show img,
-.text_show video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-}
-
-.text_show pre,
-.text_show .codehilite {
-  border-radius: 10px;
-  overflow-x: auto;
-}
-
-.copy {
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--home-muted);
-  line-height: 1.65;
-  margin-top: 2rem;
-  padding-top: 1.35rem;
-  border-top: 1px solid var(--home-border);
-}
-
-.copy a {
-  color: var(--home-accent);
-  text-decoration: none;
-}
-
-.copy a:hover {
-  text-decoration: underline;
-}
-
-#theme-switcher {
-  position: fixed !important;
-  top: 1rem !important;
-  right: 1rem !important;
-  z-index: 9999;
-  display: flex;
-  gap: 0.45rem;
-}
-
-#theme-switcher button {
-  margin: 0;
-  font-size: 0.8125rem;
-  padding: 0.45rem 0.9rem;
-  border-radius: 10px;
-  cursor: pointer;
-  background: var(--home-surface-strong);
-  color: var(--home-text);
-  border: 1px solid var(--home-border);
-  transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
-}
-
-#theme-switcher button:hover {
-  background: rgba(93, 205, 243, 0.12);
-  border-color: rgba(93, 205, 243, 0.35);
-  transform: translateY(-1px);
-}
-
-a {
-  color: var(--home-accent);
-}
-
-button,
-input,
-select {
-  background: #1e1e22;
-  color: var(--home-text);
-  border: 1px solid var(--home-border);
-}
-
-header,
-nav,
-footer {
-  background: #1a1a1e;
-}
-
-hr {
-  border-color: var(--home-border);
-}

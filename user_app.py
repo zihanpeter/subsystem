@@ -3,11 +3,11 @@ import time
 import markdown
 import bleach
 import re
+import os
 from lib import dbConnecter, defender
-from lib.config_reader import read_secret
 
 user_app = Blueprint('user_app', __name__)
-user_app.secret_key = read_secret('flask_secret_key.txt')
+user_app.secret_key = os.getenv('SECRET_KEY')
 # client = pymongo.MongoClient()
 # db = client.reciter
 

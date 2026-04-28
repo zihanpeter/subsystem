@@ -1,166 +1,19 @@
-/* 仅 main.html 引入：主页深色（青）主题布局与令牌 */
-
-:root {
-  --home-bg: #061a24;
-  --home-bg-mid: #0a2433;
-  --home-text: #e8fbfd;
-  --home-muted: #7eb8c4;
-  --home-accent: #4dd0e1;
-  --home-accent-hover: #b2ebf2;
-  --home-surface: rgba(0, 151, 167, 0.12);
-  --home-surface-strong: rgba(0, 151, 167, 0.2);
-  --home-border: rgba(77, 208, 225, 0.28);
-  --home-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-  --home-radius-lg: 16px;
-  --home-radius-pill: 999px;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  background: radial-gradient(1000px 520px at 18% -10%, rgba(77, 208, 225, 0.22), transparent 50%),
-    radial-gradient(780px 400px at 100% 0%, rgba(0, 188, 212, 0.15), transparent 48%),
-    linear-gradient(180deg, var(--home-bg) 0%, var(--home-bg-mid) 100%);
-  color: var(--home-text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0;
-  padding: 5rem 1.25rem 2.5rem;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+  background: #0e2233;
+  color: #e0f7fa;
 }
-
-body > h1 {
-  margin: 0 0 0.5rem;
-  text-align: center;
-  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  color: var(--home-text);
-}
-
-.title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem 0.1rem;
-  margin: 0 auto 2.25rem;
-  max-width: 52rem;
-  padding: 0.55rem 1rem;
-  background: var(--home-surface);
-  border: 1px solid var(--home-border);
-  border-radius: var(--home-radius-pill);
-  font-size: 0.9375rem;
-  color: var(--home-muted);
-}
-
-.title a {
-  color: var(--home-accent);
-  text-decoration: none;
-  padding: 0.4rem 0.7rem;
-  border-radius: var(--home-radius-pill);
-  transition: background 0.15s ease, color 0.15s ease;
-  margin: 0;
-}
-
-.title a:hover {
-  background: rgba(77, 208, 225, 0.18);
-  color: var(--home-accent-hover);
-}
-
-.text_show {
-  max-width: 52rem;
-  width: 100%;
-  margin: 0 auto 2.5rem;
-  padding: 1.75rem 2rem;
-  background: var(--home-surface-strong);
-  border: 1px solid var(--home-border);
-  border-radius: var(--home-radius-lg);
-  box-shadow: var(--home-shadow);
-  line-height: 1.75;
-}
-
-.text_show img,
-.text_show video {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-}
-
-.text_show pre,
-.text_show .codehilite {
-  border-radius: 10px;
-  overflow-x: auto;
-}
-
-.copy {
-  text-align: center;
-  font-size: 0.8125rem;
-  color: var(--home-muted);
-  line-height: 1.65;
-  margin-top: 2rem;
-  padding-top: 1.35rem;
-  border-top: 1px solid var(--home-border);
-}
-
-.copy a {
-  color: var(--home-accent);
-  text-decoration: none;
-}
-
-.copy a:hover {
-  text-decoration: underline;
-}
-
-#theme-switcher {
-  position: fixed !important;
-  top: 1rem !important;
-  right: 1rem !important;
-  z-index: 9999;
-  display: flex;
-  gap: 0.45rem;
-}
-
-#theme-switcher button {
-  margin: 0;
-  font-size: 0.8125rem;
-  padding: 0.45rem 0.9rem;
-  border-radius: 10px;
-  cursor: pointer;
-  background: var(--home-surface-strong);
-  color: var(--home-text);
-  border: 1px solid var(--home-border);
-  transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
-}
-
-#theme-switcher button:hover {
-  background: rgba(77, 208, 225, 0.25);
-  border-color: rgba(178, 235, 242, 0.5);
-  transform: translateY(-1px);
-}
-
-a {
-  color: var(--home-accent);
-}
-
-button,
-input,
-select {
-  background: #006064;
-  color: var(--home-text);
+a { color: #4dd0e1; }
+button, input, select {
+  background: #0097a7;
+  color: #e0f7fa;
   border: 1px solid #00bcd4;
 }
-
-header,
-nav,
-footer {
+header, nav, footer {
   background: #00838f;
 }
+hr { border-color: #00bcd4; }
+/* 可继续补充全局和常用元素样式 */
 
-hr {
-  border-color: #00bcd4;
-}
+
+
+

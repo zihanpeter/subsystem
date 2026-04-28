@@ -1,11 +1,12 @@
 from flask import render_template, request, session, redirect, Blueprint, abort
+import pymongo
 import markdown
+import os
 
 from lib import dbConnecter
-from lib.config_reader import read_secret
 
 yule_app = Blueprint('yule_app', __name__)
-yule_app.secret_key = read_secret('flask_secret_key.txt')
+yule_app.secret_key = os.getenv('SECRET_KEY')
 # client = pymongo.MongoClient()
 # db = client.reciter
 

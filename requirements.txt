@@ -1,7 +1,0 @@
-Flask
-Markdown
-bleach
-mysql-connector-python
-captcha
-gunicorn
-Pygments
