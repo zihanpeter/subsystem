@@ -37,7 +37,7 @@ services:
       - app
     env_file:
       - ./secrets/cloudflared.env
-    command: sh -c 'cloudflared tunnel run --token "$${TUNNEL_TOKEN}"'
+    command: tunnel --no-autoupdate run
 
 secrets:
   mysql_root_password:
