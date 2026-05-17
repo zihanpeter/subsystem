@@ -1,15 +1,15 @@
 from flask import Flask, render_template, session, request, abort
-import os
 import markdown
 
 from user_app import user_app
 from recite_app import recite_app
 from forum_app import forum_app
 from yule_app import yule_app
+from lib.config_loader import get_config
 
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')
+app.secret_key = get_config('SECRET_KEY')
 app.register_blueprint(user_app)
 app.register_blueprint(recite_app)
 app.register_blueprint(forum_app)

@@ -6,11 +6,11 @@ import bleach
 import re
 
 from lib import dbConnecter, defender
-import os
+from lib.config_loader import get_config
 
 
 forum_app = Blueprint('forum_app', __name__)
-forum_app.secret_key = os.getenv('SECRET_KEY')
+forum_app.secret_key = get_config('SECRET_KEY')
 # client = pymongo.MongoClient()
 # db = client.reciter
 

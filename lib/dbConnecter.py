@@ -1,5 +1,5 @@
 import mysql.connector
-import os
+from lib.config_loader import get_config
 
 
 '''
@@ -21,7 +21,7 @@ def connect_to_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password=os.getenv('MYSQL_PASSWORD'),
+        password=get_config('MYSQL_PASSWORD'),
         # password="my_password",
         database='subsystem'
     )
