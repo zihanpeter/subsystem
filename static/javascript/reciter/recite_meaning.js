@@ -62,13 +62,14 @@ function checkDonotknow() {
 }
 
 document.addEventListener("keydown", function(event) {
-    if (event.key === "S" || event.key === "ArrowDown") {
+    let key = event.key.length === 1 ? event.key.toLowerCase() : event.key; // 不区分大小写
+    if (key === "s" || key === "ArrowDown") {
         if (!flag) showTip();
     }
-    if (event.key === "A" || event.key === "ArrowLeft") {
+    if (key === "a" || key === "ArrowLeft") {
         if (flag) checkKnow();
     }
-    if (event.key == "D" || event.key === "ArrowRight") {
+    if (key === "d" || key === "ArrowRight") {
         if (flag) checkDonotknow();
     }
 });

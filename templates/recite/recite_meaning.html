@@ -21,24 +21,19 @@
         <p class="stage__guide" id="guide"></p>
 
         <div class="stage__controls">
-            <button class="btn btn--ghost" id="next" type="button" onclick="showTip();">
-                Show meaning <span class="kbd">S</span>
-            </button>
             <button class="btn" id="know" type="button" onclick="checkKnow();">
-                Know <span class="kbd">A</span>
+                Know <span class="keys"><span class="kbd">A</span><span class="kbd">&larr;</span></span>
+            </button>
+            <button class="btn btn--ghost" id="next" type="button" onclick="showTip();">
+                Show meaning <span class="keys"><span class="kbd">S</span><span class="kbd">&darr;</span></span>
             </button>
             <button class="btn btn--danger" id="donotknow" type="button" onclick="checkDonotknow();">
-                Don't know <span class="kbd">D</span>
+                Don't know <span class="keys"><span class="kbd">D</span><span class="kbd">&rarr;</span></span>
             </button>
         </div>
 
         <a class="btn btn--soft stage__finish" href="/reciter" id="finish"></a>
     </section>
-
-    <p class="text-muted text-center">
-        Arrow keys work too: <span class="kbd">&darr;</span> show,
-        <span class="kbd">&larr;</span> know, <span class="kbd">&rarr;</span> don't know.
-    </p>
 </div>
 {% endblock %}
 

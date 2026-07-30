@@ -984,6 +984,11 @@ th.num {
     display: inline-flex;
 }
 
+.keys {
+    display: inline-flex;
+    gap: 4px;
+}
+
 .kbd {
     display: inline-block;
     min-width: 20px;
