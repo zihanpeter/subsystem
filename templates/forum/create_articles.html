@@ -1,69 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Creating Articles - Forum - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Forum - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
-        </div>
+{% extends 'base.html' %}
+{% set active_nav = 'forum' %}
 
-        <div class="contents">
-            <h2>Create an Article</h2>
-            <form action="/check_articles" method="post">
-                <input type="text" name="title" placeholder="Title" required maxlength="64">
-                <br>
-                <textarea name="content" placeholder="Contents" required class="passage" maxlength="50000"></textarea>
-                <br>
-                Supporting
-                <a href="https://help.luogu.com.cn/rules/academic/handbook/markdown">Markdown</a>
+{% block title %}Create an article - Forum - Subsystem{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Forum</span>
+            <h1>Create an article</h1>
+            <p class="page-head__sub">
+                Supports
+                <a href="https://help.luogu.com.cn/rules/academic/handbook/markdown" target="_blank" rel="noopener">Markdown</a>
                 and
-                <a href="https://katex.org/docs/supported.html">KaTeX</a>
-                <br>
-                {% if t_admin %}
-                    <select name="top">
-                        <option value="True">Top</option>
-                        <option value="False">Not on top</option>
-                    </select>
-                    <br>
-                {% endif %}
-
-                <br>
-                <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
-                <br>
-                <p class="error">{{ t_error }}</p>
-                <br>
-                <input type="submit" value="Done">
-            </form>
+                <a href="https://katex.org/docs/supported.html" target="_blank" rel="noopener">KaTeX</a>.
+            </p>
         </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <section class="card">
+        <form class="form" action="/check_articles" method="post">
+            <div class="field">
+                <label class="field__label" for="article-title">Title</label>
+                <input id="article-title" type="text" name="title" placeholder="A clear, short title"
+                       maxlength="64" required>
+            </div>
+
+            <div class="field field--code">
+                <label class="field__label" for="article-content">Content</label>
+                <textarea id="article-content" name="content" placeholder="Write your article..."
+                          maxlength="50000" required></textarea>
+                <p class="field__hint">Up to 50000 characters. Drag the bottom-right corner to resize.</p>
+            </div>
+
+            {% if t_admin %}
+            <div class="field">
+                <label class="field__label" for="article-top">Visibility</label>
+                <select id="article-top" name="top">
+                    <option value="True">Pinned</option>
+                    <option value="False">Not pinned</option>
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="field">
+                <label class="field__label" for="article-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="article-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+
+            <p class="error">{{ t_error }}</p>
+
+            <div class="form__actions">
+                <button class="btn" type="submit">Publish</button>
+                <a class="btn btn--ghost" href="/forum">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

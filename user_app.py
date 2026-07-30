@@ -201,13 +201,19 @@ def change_password():
 @user_app.route('/change_theme', methods=['POST']) # 更改颜色主题
 def change_theme():
     theme = request.form.get('theme')
-    # dic = db.users.find_one({'username': session['username']})
-    # dic = dbConnecter.read_data('users', 'username', session['username'])
-    # dic['theme'] = theme
+    if theme not in ('white', 'black'):
+        theme = 'white'
     session['theme'] = theme
-    # db.users.update({'username': session['username']}, dic)
-    dic = dbConnecter.update_data('users', 'username', session['username'], 'theme', theme)
-    return redirect('/profile?username=' + session['username'])
+    username = session.get('username')
+    if username != None: # 未登录用户只在会话中记住主题
+        dbConnecter.update_data('users', 'username', username, 'theme', theme)
+    # 主题按钮在每个页面上都有，因此回到发起请求的页面
+    nxt = request.form.get('next')
+    if nxt != None and nxt.startswith('/') and not nxt.startswith('//'):
+        return redirect(nxt)
+    if username != None:
+        return redirect('/profile?username=' + username)
+    return redirect('/')
 
 @user_app.route('/userlist')
 def userlist():

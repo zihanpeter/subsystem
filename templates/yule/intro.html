@@ -1,78 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ t_name }} - Yule - Reciter</title>
-    <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-        <!-- 引入KaTeX CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-        <!-- 引入KaTeX JavaScript -->
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "\\[", right: "\\]", display: true},
-                        {left: "$", right: "$", display: false},
-                        {left: "\\(", right: "\\)", display: false}
-                    ]
-                });
-            });
-        </script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/monokai.css" rel="stylesheet">
-        {% endif %}
-        {% if t_theme != 'black' %}
-        <link href="../static/css/default.css" rel="stylesheet">
-        {% endif %}
-</head>
-<body>
-  <div class="title">
-            Yule - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
+{% extends 'base.html' %}
+{% set active_nav = 'yule' %}
+{% set footer_author = 'ycy' %}
+
+{% block title %}{{ t_name }} - Yule - Subsystem{% endblock %}
+
+{% block head %}
+{% include 'partials/katex.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Game</span>
+            <h1>{{ t_name }}</h1>
+            <div class="meta">
+                <a href="/profile?username={{ t_creator }}">{{ t_creator }}</a>
+                <span class="meta__dot">{{ t_timef }}</span>
+                <span class="meta__dot">Played {{ t_hot }} times</span>
+            </div>
+        </div>
+        <div class="page-head__actions">
+            <a class="btn" href="/games?name={{ t_name }}">Start game</a>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="prose">
+            {% if t_intro %}
+            {{ t_intro | safe }}
+            {% else %}
+            <p class="text-muted">No introduction has been written for this game yet.</p>
             {% endif %}
         </div>
-  <div class="contents">
-
-    <h2>{{ t_name }}</h2>
-
-      <a href="/profile?name={{ t_creator }}">{{ t_creator }}</a>
-      <br>
-      {{ t_timef }}
-      <br>
-      <p>Hot: {{ t_hot }}</p>
-      <br>
-      <div class="text_show">
-    {{ t_intro|safe }}
-          </div>
-      <br>
-        <a href="/games?name={{ t_name }}">Start Game!</a>
-  </div>
-    <div class="copy">
-        Developed by <a href="https://github.com/YCY5449">YCY5449</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
-</body>
-</html>
+    </section>
+</div>
+{% endblock %}

@@ -1,137 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Reciter - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
 
-    <body>
-         <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% block title %}Reciter - Subsystem{% endblock %}
+
+{% block content %}
+{% set lists = t_lists_o if t_show_mode == 'official' else t_lists_u %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Reciter</span>
+            <h1>Wordlists</h1>
+            <p class="page-head__sub">Pick an official list or something from the community, then drill
+                meanings or spelling.</p>
         </div>
-        <h2>Reciter</h2>
-        <div class="contents">
-            <a href="/create"> Create a Wordlist </a>
-
-            <h3> Skip </h3>
-            <form action="/show_list" method="get">
-                <input type="text" name="id" placeholder="List ID" required>
-                <input type="submit" value="Go!">
-            </form>
-
-            <h3>Select: </h3>
-            <form action="/reciter" method="get">
-                <select name="difficulty">
-                    <option value="all">All</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-                <input type="text" name="key" placeholder="List name" maxlength="64">
-                <select name="show_mode" id="">
-                    {% if t_show_mode == 'official' %}
-                    <option value="official">Official</option>
-                    <option value="users">Users</option>
-                    {% endif %}
-                    {% if t_show_mode == 'users' %}
-                    <option value="users">Users</option>
-                    <option value="official">Official</option>
-                    {% endif %}
-                </select>
-                <input type="submit" name="mode" value="OK">
-            </form>
-
-            {% if t_show_mode == 'official' %}
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">List name</th>
-                        <th scope="col">Creator</th>
-                        <th scope="col">Difficulty</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_lists_o %}
-                        <tr>
-                            <td>
-                                <a href="/show_list?id={{ i['id'] }}"> {{ i['listname'] }} </a>
-                            </td>
-                            <td>
-                                <a href="/profile?username={{ i['username'] }}"> {{ i['username'] }} </a>
-                            </td>
-                            <td>
-                                {{ i['difficulty'] }}
-                            </td>
-                            <td>
-                                {{ i['timef'] }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-
-            {% if t_show_mode == 'users' %}
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">List name</th>
-                        <th scope="col">Creator</th>
-                        <th scope="col">Difficulty</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_lists_u %}
-                        <tr>
-                            <td>
-                                <a href="/show_list?id={{ i['id'] }}"> {{ i['listname'] }} </a>
-                            </td>
-                            <td>
-                                <a href="/profile?username={{ i['username'] }}"> {{ i['username'] }} </a>
-                            </td>
-                            <td>
-                                {{ i['difficulty'] }}
-                            </td>
-                            <td>
-                                {{ i['timef'] }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="page-head__actions">
+            <a class="btn" href="/create">Create a wordlist</a>
         </div>
-        {% endif %}
-
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <div class="grid">
+        <section class="card">
+            <div class="card__head">
+                <h2 class="card__title">Jump to a list</h2>
+            </div>
+            <form class="form__row" action="/show_list" method="get">
+                <div class="field">
+                    <label class="field__label" for="list-id">List ID</label>
+                    <input id="list-id" type="text" name="id" placeholder="Paste a list ID" required>
+                </div>
+                <button class="btn btn--ghost" type="submit">Go</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <div class="card__head">
+                <h2 class="card__title">Filter</h2>
+            </div>
+            <form class="form" action="/reciter" method="get">
+                <div class="form__row">
+                    <div class="field">
+                        <label class="field__label" for="list-key">List name</label>
+                        <input id="list-key" type="text" name="key" placeholder="Search by name" maxlength="64">
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="list-difficulty">Difficulty</label>
+                        <select id="list-difficulty" name="difficulty">
+                            <option value="all">All</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="list-source">Source</label>
+                        <select id="list-source" name="show_mode">
+                            <option value="official" {% if t_show_mode == 'official' %}selected{% endif %}>Official</option>
+                            <option value="users" {% if t_show_mode == 'users' %}selected{% endif %}>Users</option>
+                        </select>
+                    </div>
+                    <button class="btn btn--ghost" type="submit" name="mode" value="OK">Apply</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">List name</th>
+                    <th scope="col">Creator</th>
+                    <th scope="col">Difficulty</th>
+                    <th scope="col">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in lists %}
+                <tr>
+                    <td><a href="/show_list?id={{ i['id'] }}">{{ i['listname'] }}</a></td>
+                    <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
+                    <td><span class="chip">Level {{ i['difficulty'] }}</span></td>
+                    <td class="num">{{ i['timef'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not lists %}
+        <p class="table-empty">No wordlist matches this filter.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

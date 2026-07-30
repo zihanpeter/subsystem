@@ -1,101 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Subsystem </title>
-        <!-- 引入KaTeX CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-        <!-- 引入KaTeX JavaScript -->
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "\\[", right: "\\]", display: true},
-                        {left: "$", right: "$", display: false},
-                        {left: "\\(", right: "\\)", display: false}
-                    ]
-                });
-            });
-        </script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/monokai.css" rel="stylesheet">
-        {% endif %}
-        {% if t_theme != 'black' %}
-        <link href="../static/css/default.css" rel="stylesheet">
-        {% endif %}
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-        <link id="theme-style" rel="stylesheet" href="/static/css/theme-dark-black.css">
-    </head>
+{% extends 'base.html' %}
+{% set active_nav = 'home' %}
 
-    <body>
-    <div id="theme-switcher" style="position:fixed;top:10px;right:10px;z-index:9999;">
-      <button onclick="setTheme('black')">黑色主题</button>
-      <button onclick="setTheme('cyan')">青色主题</button>
-    </div>
-    <script>
-      function setTheme(theme) {
-        let href = '/static/css/theme-dark-' + theme + '.css';
-        document.getElementById('theme-style').setAttribute('href', href);
-        localStorage.setItem('theme', theme);
-      }
-      (function() {
-        let theme = localStorage.getItem('theme') || 'black';
-        setTheme(theme);
-      })();
-    </script>
-        <h1>Subsystem</h1>
-        <div class="title">
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
+{% block title %}Subsystem{% endblock %}
+
+{% block head %}
+{% include 'partials/katex.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <section class="hero hero--compact">
+        <h1 class="hero__title">One place to memorise, discuss and play.</h1>
+        <p class="hero__lead">A vocabulary trainer, a forum and a games arcade behind one account.</p>
+        <div class="hero__actions">
+            <a class="btn" href="/reciter">Start reciting</a>
+            <a class="btn btn--ghost" href="/forum">Browse the forum</a>
+            {% if not current_user %}
+            <a class="btn btn--ghost" href="/register">Create an account</a>
             {% endif %}
         </div>
+    </section>
 
-<!--        <div class="contents">-->
-<!--            <h1> Subsystem </h1>-->
-<!--            <h3> News & Notice </h3>-->
-<!--            {% for i in t_top %}-->
-<!--                <a href="/articles?id={{ i['id'] }}"> {{ i['title'] }} </a>-->
-<!--                <br>-->
-<!--            {% endfor %}-->
-<!--            <h3> Recent Articles </h3>-->
-<!--                {% for i in t_rec %}-->
-<!--                    <a href="/articles?id={{ i['id'] }}"> {{ i['title'] }} </a>-->
-<!--                    <br>-->
+    <div class="grid">
+        <a class="tile" href="/reciter">
+            <span class="tile__value">Reciter</span>
+            <span class="tile__text">Drill wordlists by meaning or spelling.</span>
+        </a>
+        <a class="tile" href="/forum">
+            <span class="tile__value">Forum</span>
+            <span class="tile__text">Write and discuss in Markdown.</span>
+        </a>
+        <a class="tile" href="/yule">
+            <span class="tile__value">Yule</span>
+            <span class="tile__text">A dozen browser games.</span>
+        </a>
+        <a class="tile" href="/userlist">
+            <span class="tile__value">Users</span>
+            <span class="tile__text">See who is here.</span>
+        </a>
+    </div>
 
-<!--                {% endfor %}-->
-<!--            <h3> Latest Wordlists </h3>-->
-<!--                {% for i in t_lists %}-->
-<!--                    <a href="/show_list?id={{ i['id'] }}"> {{ i['listname'] }} </a>-->
-<!--                    <br>-->
-<!--                {% endfor %}-->
-<!--        </div>-->
-        <div class="text_show">
+    <section class="card">
+        <div class="prose prose--compact">
             {{ t_content | safe }}
         </div>
-
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
-    </body>
-</html>
+    </section>
+</div>
+{% endblock %}

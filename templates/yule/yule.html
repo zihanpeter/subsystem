@@ -1,66 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Yule - Reciter </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Yule - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% extends 'base.html' %}
+{% set active_nav = 'yule' %}
+{% set footer_author = 'ycy' %}
+
+{% block title %}Yule - Subsystem{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Yule</span>
+            <h1>Games</h1>
+            <p class="page-head__sub">A project before Christmas: a small arcade of browser games built
+                for Subsystem.</p>
         </div>
-        <div class="contents">
-            <h2>Yule</h2>
-            <p>A project before Christmas.</p>
-            <a href="/articles?id=0df4c672-b375-11ef-bf2b-57fb35f9416a">Yule Feedback Center</a>
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Games</th>
-                        <th scope="col">Hot</th>
-                        <th scope="col">Creator</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_dics %}
-                        <tr>
-                            <td scope="row">
-                                <a href="/intro?name={{ i['name'] }}">{{ i['name'] }} </a>
-                            </td>
-                            <td>{{ i['hot'] }}</td>
-                            <td><a href="/profile?id={{ i['creator'] }}">{{ i['creator'] }} </a></td>
-                            <td>{{ i['timef'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="page-head__actions">
+            <a class="btn btn--ghost" href="/articles?id=0df4c672-b375-11ef-bf2b-57fb35f9416a">Feedback centre</a>
         </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/YCY5449">YCY5449</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Game</th>
+                    <th scope="col">Hot</th>
+                    <th scope="col">Creator</th>
+                    <th scope="col">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in t_dics %}
+                <tr>
+                    <th scope="row"><a href="/intro?name={{ i['name'] }}">{{ i['name'] }}</a></th>
+                    <td class="num">{{ i['hot'] }}</td>
+                    <td><a href="/profile?username={{ i['creator'] }}">{{ i['creator'] }}</a></td>
+                    <td class="num">{{ i['timef'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not t_dics %}
+        <p class="table-empty">No games published yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

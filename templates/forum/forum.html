@@ -1,115 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Forum - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
+{% extends 'base.html' %}
+{% set active_nav = 'forum' %}
 
-    <body>
-        <div class="title">
-            Forum - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% block title %}Forum - Subsystem{% endblock %}
+
+{% block content %}
+{% set articles = t_list_top if t_show_mode == 'top' else t_list_cmn %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Forum</span>
+            <h1>Articles</h1>
+            <p class="page-head__sub">Pinned announcements and everything the community is writing about.</p>
         </div>
-        <h2>Forum</h2>
-        <div class="contents">
-            <a href="/create_articles"> Create an Article </a>
-
-            <h3>Select: </h3>
-            <form action="/forum" method="get">
-                <input type="text" name="key" placeholder="Title">
-                <select name="show_mode" id="">
-                    {% if t_show_mode == 'top' %}
-                    <option value="top">Top</option>
-                    <option value="rest">Rest</option>
-                    {% endif %}
-                    {% if t_show_mode == 'rest' %}
-                    <option value="rest">Rest</option>
-                    <option value="top">Top</option>
-                    {% endif %}
-                </select>
-                <input type="submit" value="OK">
-            </form>
-
-            {% if t_show_mode == 'top' %}
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Title</th>
-                        <th scope="col">Creator</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_list_top %}
-                        <tr>
-                            <td>
-                                <a href="/articles?id={{ i['id'] }}"> {{ i['title'] }} </a>
-                            </td>
-                            <td>
-                                <a href="/profile?username={{ i['username'] }}"> {{ i['username'] }} </a>
-                            </td>
-                            <td>
-                                {{ i['timef'] }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-
-            {% if t_show_mode == 'rest' %}
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Title</th>
-                        <th scope="col">Creater</th>
-                        <th scope="col">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_list_cmn %}
-                        <tr>
-                            <td>
-                                <a href="/articles?id={{ i['id'] }}"> {{ i['title'] }} </a>
-                            </td>
-                            <td>
-                                <a href="/profile?username={{ i['username'] }}"> {{ i['username'] }} </a>
-                            </td>
-                            <td>
-                                {{ i['timef'] }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
+        <div class="page-head__actions">
+            <a class="btn" href="/create_articles">Create an article</a>
         </div>
-
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <section class="card">
+        <form class="form__row" action="/forum" method="get">
+            <div class="field">
+                <label class="field__label" for="forum-key">Title</label>
+                <input id="forum-key" type="text" name="key" placeholder="Search by title">
+            </div>
+            <div class="field">
+                <label class="field__label" for="forum-mode">Show</label>
+                <select id="forum-mode" name="show_mode">
+                    <option value="top" {% if t_show_mode == 'top' %}selected{% endif %}>Pinned</option>
+                    <option value="rest" {% if t_show_mode == 'rest' %}selected{% endif %}>All the rest</option>
+                </select>
+            </div>
+            <button class="btn" type="submit">Search</button>
+        </form>
+    </section>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Creator</th>
+                    <th scope="col">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in articles %}
+                <tr>
+                    <td><a href="/articles?id={{ i['id'] }}">{{ i['title'] }}</a></td>
+                    <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
+                    <td class="num">{{ i['timef'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not articles %}
+        <p class="table-empty">Nothing here yet. Be the first to write an article.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

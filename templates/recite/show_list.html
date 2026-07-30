@@ -1,90 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> {{ t_wordlist['listname'] }} - Reciter - Subsystem</title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
+
+{% block title %}{{ t_wordlist['listname'] }} - Reciter - Subsystem{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Wordlist</span>
+            <h1>{{ t_wordlist['listname'] }}</h1>
+            <div class="meta">
+                <a href="/profile?username={{ t_wordlist['username'] }}">{{ t_wordlist['username'] }}</a>
+                <span class="meta__dot">{{ t_wordlist['timef'] }}</span>
+                <span class="meta__dot">{{ t_size }} words</span>
+            </div>
+        </div>
+        {% if current_user == t_wordlist['username'] or t_admin %}
+        <div class="page-head__actions">
+            <a class="btn btn--ghost" href="/modify_list?id={{ t_wordlist['id'] }}">Modify</a>
+            <a class="btn btn--danger" href="/check_del_list?id={{ t_wordlist['id'] }}">Delete</a>
+        </div>
         {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
-        </div>
-        <div class="contents">
-            <h2>{{ t_wordlist['listname'] }}</h2>
-            {% if t_username == t_wordlist['username'] or t_admin %}
-                <a href="/modify_list?id={{ t_wordlist['id'] }}">Modify</a>
-            <br>
-                <a href="/check_del_list?id={{ t_wordlist['id'] }}">Delete</a>
-            {% endif %}
-            <form action="/recite" method="get">
-                <input type="hidden" name="id" value="{{ t_wordlist['id'] }}">
-                <input type="submit" name="pattern" value="Learn meaning">
-                <input type="submit" name="pattern" value="Learn spelling">
-            </form>
-
-            <h3>List id</h3>
-            {{ t_wordlist['id'] }}
-
-            <h3>Creator</h3>
-            <a href="/profile?username={{ t_wordlist['username'] }}">{{ t_wordlist['username'] }}</a>
-
-            <h3>Time</h3>
-            {{ t_wordlist['timef']}}
-
-            <h3>Difficulty Level</h3>
-            {{ t_wordlist['difficulty'] }}
-
-            <h3>Contents</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Number</th>
-                        <th scope="col">En</th>
-                        <th scope="col">Zh</th>
-                        {% if t_sm %}
-                            <th scope="col">Example sentence/explanation</th>
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in range(0, t_size) %}
-                        <tr>
-                            <th scope="row">{{ i }}</th>
-                            <td>{{ t_wordlist['en'][i] }}</td>
-                            <td>{{ t_wordlist['zh'][i] }}</td>
-                            {% if t_sm %}
-                                <td>{{ t_wordlist['sen'][i] }}</td>
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-       <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-       2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <section class="card">
+        <div class="card__head">
+            <div class="row">
+                <span class="chip chip--accent">Difficulty {{ t_wordlist['difficulty'] }}</span>
+                <span class="chip">ID <code>{{ t_wordlist['id'] }}</code></span>
+            </div>
+        </div>
+        <form class="form__actions" action="/recite" method="get">
+            <input type="hidden" name="id" value="{{ t_wordlist['id'] }}">
+            <button class="btn" type="submit" name="pattern" value="Learn meaning">Learn meaning</button>
+            <button class="btn btn--soft" type="submit" name="pattern" value="Learn spelling">Learn spelling</button>
+        </form>
+    </section>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">English</th>
+                    <th scope="col">Chinese</th>
+                    {% if t_sm %}
+                    <th scope="col">Example / explanation</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(0, t_size) %}
+                <tr>
+                    <th class="num" scope="row">{{ i }}</th>
+                    <td>{{ t_wordlist['en'][i] }}</td>
+                    <td>{{ t_wordlist['zh'][i] }}</td>
+                    {% if t_sm %}
+                    <td class="text-muted">{{ t_wordlist['sen'][i] }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not t_size %}
+        <p class="table-empty">This wordlist is empty.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -23,6 +23,11 @@ def get_theme():
         theme = 'white'
     return theme
 
+@app.context_processor
+def inject_layout_context(): # 布局(导航栏/主题)所需的全局变量
+    return {'current_user': session.get('username'),
+            't_theme': get_theme()}
+
 @app.route('/')
 def main():
     username = session.get('username')

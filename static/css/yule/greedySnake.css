@@ -7,6 +7,7 @@ canvas {
 .game-info {
     text-align: center;
     font-family: Arial, sans-serif;
+    margin-top: calc(var(--game-bar-h, 50px) + 12px);
 }
 .score {
     font-size: 24px;
@@ -16,23 +17,23 @@ canvas {
     margin: 10px 0;
     color: #666;
 }
-
-#homeButton {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 1000;
+.difficulty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 16px 0;
+    font-size: 1rem;
 }
-
-#homeButton:hover {
-    background: #1976D2;
+.difficulty select {
+    margin: 0;
+    padding: 7px 10px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
 }
 
 .game-over-modal {

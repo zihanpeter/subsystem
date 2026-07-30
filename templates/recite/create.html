@@ -1,76 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Creating Wordlists - Reciter - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-          <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
+
+{% block title %}Create a wordlist - Reciter - Subsystem{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Reciter</span>
+            <h1>Create a wordlist</h1>
+            <p class="page-head__sub">
+                One entry per pair of lines: English first, then Chinese. Add a third line for the
+                example sentence when the list includes explanations.
+            </p>
         </div>
-        <div class="contents">
-            <h2>Create a Wordlist</h2>
-            <form action="/check_create" method="post" class="contents_center">
-                <input type="text" name="listname" placeholder="List name" required maxlength="64">
-                <br>
-                <textarea name="wordlist" placeholder="Words..." required class="passage" maxlength="50000"></textarea>
-                <br>
-                Difficulty level:
-                <select name="difficulty">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-                <br>
-                <select name="sm">
-                    <option value="n">No example sentence/explanation</option>
-                    <option value="y">Including example sentence/explanation</option>
-                </select>
-                <br>
+    </div>
+
+    <section class="card">
+        <form class="form" action="/check_create" method="post">
+            <div class="field">
+                <label class="field__label" for="listname">List name</label>
+                <input id="listname" type="text" name="listname" placeholder="e.g. CET-6 unit 1"
+                       maxlength="64" required>
+            </div>
+
+            <div class="field field--code">
+                <label class="field__label" for="wordlist">Words</label>
+                <textarea id="wordlist" name="wordlist" maxlength="50000" required
+                          placeholder="hello&#10;你好&#10;banana&#10;香蕉"></textarea>
+                <p class="field__hint">Up to 50000 characters. Avoid characters such as <code>.</code> in
+                    English words.</p>
+            </div>
+
+            <div class="form__row">
+                <div class="field">
+                    <label class="field__label" for="difficulty">Difficulty level</label>
+                    <select id="difficulty" name="difficulty">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label class="field__label" for="sm">Example sentences</label>
+                    <select id="sm" name="sm">
+                        <option value="n">Without example / explanation</option>
+                        <option value="y">Including example / explanation</option>
+                    </select>
+                </div>
+
                 {% if t_admin %}
-                    <select name="o">
+                <div class="field">
+                    <label class="field__label" for="official">Publication</label>
+                    <select id="official" name="o">
                         <option value="y">Official</option>
                         <option value="n">Unofficial</option>
                     </select>
-                    <br>
+                </div>
                 {% endif %}
-                <br>
-                <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
-                <br>
-                <p class="error">{{ t_error }}</p>
-                <br>
-                <input type="submit" value="Done">
-            </form>
-        </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
-    </body>
-</html>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="create-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="create-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+
+            <p class="error">{{ t_error }}</p>
+
+            <div class="form__actions">
+                <button class="btn" type="submit">Create wordlist</button>
+                <a class="btn btn--ghost" href="/reciter">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

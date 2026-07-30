@@ -1,0 +1,97 @@
+/* Subsystem design tokens: shared by every page, including the Yule game pages. */
+
+:root {
+    color-scheme: light;
+
+    --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial,
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace;
+
+    --bg: #f3f5fb;
+    --bg-glow-a: rgba(99, 102, 241, 0.16);
+    --bg-glow-b: rgba(56, 189, 248, 0.14);
+    --surface: #ffffff;
+    --surface-2: #f7f9fd;
+    --surface-3: #eef2f9;
+    --header-bg: rgba(255, 255, 255, 0.82);
+
+    --border: #e3e8f2;
+    --border-strong: #ccd5e6;
+
+    --text: #171d2b;
+    --text-soft: #4a5570;
+    --text-muted: #7d879e;
+
+    --accent: #4f46e5;
+    --accent-strong: #4338ca;
+    --accent-contrast: #ffffff;
+    --accent-soft: rgba(79, 70, 229, 0.1);
+    --accent-ring: rgba(79, 70, 229, 0.28);
+
+    --danger: #d92d2d;
+    --danger-soft: rgba(217, 45, 45, 0.1);
+    --success: #0d9488;
+    --success-soft: rgba(13, 148, 136, 0.12);
+
+    --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
+    --shadow-md: 0 8px 20px -10px rgba(17, 24, 39, 0.18), 0 2px 6px rgba(17, 24, 39, 0.04);
+    --shadow-lg: 0 24px 48px -24px rgba(17, 24, 39, 0.32);
+
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 18px;
+    --radius-pill: 999px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    --header-h: 60px;
+    /* the slimmer fixed header used on game pages; game CSS offsets its own
+       top-anchored elements by this much */
+    --game-bar-h: 50px;
+    --content-width: 1080px;
+    --reading-width: 760px;
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%234a5570' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg: #0c0f16;
+    --bg-glow-a: rgba(99, 102, 241, 0.22);
+    --bg-glow-b: rgba(14, 165, 233, 0.16);
+    --surface: #141924;
+    --surface-2: #1a2130;
+    --surface-3: #212a3b;
+    --header-bg: rgba(15, 19, 28, 0.78);
+
+    --border: #26303f;
+    --border-strong: #37445a;
+
+    --text: #e9edf6;
+    --text-soft: #b0bccf;
+    --text-muted: #8391a8;
+
+    --accent: #818cf8;
+    --accent-strong: #a5b4fc;
+    --accent-contrast: #10131c;
+    --accent-soft: rgba(129, 140, 248, 0.16);
+    --accent-ring: rgba(129, 140, 248, 0.35);
+
+    --danger: #f87171;
+    --danger-soft: rgba(248, 113, 113, 0.14);
+    --success: #2dd4bf;
+    --success-soft: rgba(45, 212, 191, 0.14);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 24px -12px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 28px 56px -28px rgba(0, 0, 0, 0.8);
+
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b0bccf' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5 8 10.5l4-4'/%3E%3C/svg%3E");
+}

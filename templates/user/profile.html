@@ -1,191 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> {{ t_username }} - Users - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-        <!-- 引入KaTeX CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-        <!-- 引入KaTeX JavaScript -->
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "\\[", right: "\\]", display: true},
-                        {left: "$", right: "$", display: false},
-                        {left: "\\(", right: "\\)", display: false}
-                    ]
-                });
-            });
-        </script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/monokai.css" rel="stylesheet">
-        {% endif %}
-        {% if t_theme != 'black' %}
-        <link href="../static/css/default.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Users - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% extends 'base.html' %}
+{% set active_nav = 'users' %}
+
+{% block title %}{{ t_username }} - Users - Subsystem{% endblock %}
+
+{% block head %}
+{% include 'partials/katex.html' %}
+{% endblock %}
+
+{% block content %}
+{% set is_owner = t_realname is defined and t_realname == t_username %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Profile</span>
+            <h1>{{ t_username }}</h1>
+            <p class="page-head__sub">
+                <span class="chip">Registered {{ t_timef }}</span>
+                {% if t_admin and is_owner %}
+                <span class="chip chip--accent">Administrator</span>
+                {% endif %}
+            </p>
         </div>
-        <div class="contents">
-            <h2>{{ t_username }}</h2>
-
-            <h3>Register time </h3>
-            {{ t_timef }}
-
-            {% if t_realname == t_username %}
-            <h3> Color theme </h3>
-            <form action="/change_theme" method="post">
-                <select name="theme">
-                    {% if t_theme == 'black' %}
-                        <option value="black">Dark</option>
-                        <option value="white">Light</option>
-                    {% endif %}
-                    {% if t_theme == 'white' %}
-                        <option value="white">Light</option>
-                        <option value="black">Dark</option>
-                    {% endif %}
-                </select>
-                <input type="submit" value="Submit">
-            </form>
-            {% endif %}
-
-            <h3>Introduction</h3>
-
-            {% if t_realname == t_username or t_admin %}
-                <a href="/modify_intro?username={{ t_username }}">Edit</a>
-                <br>
-            {% endif %}
-            <div class="text_show">
-                {{ t_intro|safe }}
-            </div>
-
-<!--            <h3>Wordlists provided</h3>-->
-<!--            <table>-->
-<!--                <thead>-->
-<!--                    <tr>-->
-<!--                        <th scope="col">List name</th>-->
-<!--                        <th scope="col">Difficulty</th>-->
-<!--                        <th scope="col">Time</th>-->
-<!--                    </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                    {% for i in t_userlist %}-->
-<!--                        <tr>-->
-<!--                            <td>-->
-<!--                                <a href="/show_list?id={{ i['id'] }}"> {{ i['listname'] }} </a>-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {{ i['difficulty'] }}-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {{ i['timef'] }}-->
-<!--                            </td>-->
-<!--                        </tr>-->
-<!--                    {% endfor %}-->
-<!--                </tbody>-->
-<!--            </table>-->
-
-<!--            <h3>Records</h3>-->
-<!--            <table>-->
-<!--                <thead>-->
-<!--                    <tr>-->
-<!--                        <th scope="col">List name</th>-->
-<!--                        <th scope="col">Creater</th>-->
-<!--                        <th scope="col">Difficulty</th>-->
-<!--                        <th scope="col">Finish time</th>-->
-<!--                    </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                    {% for i in t_list_record %}-->
-<!--                        <tr>-->
-<!--                            <td>-->
-<!--                                <a href="/show_list?id={{ i['id'] }}"> {{ i['listname'] }} </a>-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                <a href="/profile?username={{ i['username'] }}"> {{ i['username'] }} </a>-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {{ i['difficulty'] }}-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {{ i['timef'] }}-->
-<!--                            </td>-->
-<!--                        </tr>-->
-<!--                    {% endfor %}-->
-<!--                </tbody>-->
-<!--            </table>-->
-
-<!--            <h3>Posted Articles</h3>-->
-<!--            <table>-->
-<!--                <thead>-->
-<!--                    <tr>-->
-<!--                        <th scope="col">Title</th>-->
-<!--                        <th scope="col">Time</th>-->
-<!--                    </tr>-->
-<!--                </thead>-->
-<!--                <tbody>-->
-<!--                    {% for i in t_articleslist %}-->
-<!--                        <tr>-->
-<!--                            <td>-->
-<!--                                <a href="/articles?id={{ i['id'] }}"> {{ i['title'] }} </a>-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {{ i['timef'] }}-->
-<!--                            </td>-->
-<!--                        </tr>-->
-<!--                    {% endfor %}-->
-<!--                </tbody>-->
-<!--            </table>-->
-
-            {% if t_username == t_realname %}
-                <h3>Change your password</h3>
-                <form action="/change_password" method="post">
-                    <input type="password" name="old" placeholder="Original password" required>
-
-                    <input type="password" name="new" placeholder="New password" maxlength="32" required>
-
-                    <input type="password" name="new2" placeholder="Repeat new password" maxlength="32" required>
-                    <br>
-                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                    <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
-                    <br>
-                    <p class="error">{{ t_error }}</p>
-                    <br>
-                    <input type="submit" value="Submit">
-                </form>
-            {% endif %}
+        {% if is_owner or t_admin %}
+        <div class="page-head__actions">
+            <a class="btn btn--ghost" href="/modify_intro?username={{ t_username }}">Edit introduction</a>
         </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
+        {% endif %}
     </div>
-    </body>
-</html>
+
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Introduction</h2>
+        </div>
+        <div class="prose">
+            {{ t_intro | safe }}
+        </div>
+    </section>
+
+    {% if is_owner %}
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Appearance</h2>
+            <p class="card__hint">Also switchable from the moon icon in the header.</p>
+        </div>
+        <form class="form__row" action="/change_theme" method="post">
+            <div class="field">
+                <label class="field__label" for="theme-select">Color theme</label>
+                <select id="theme-select" name="theme">
+                    <option value="white" {% if t_theme != 'black' %}selected{% endif %}>Light</option>
+                    <option value="black" {% if t_theme == 'black' %}selected{% endif %}>Dark</option>
+                </select>
+            </div>
+            <button class="btn" type="submit">Save</button>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Change your password</h2>
+        </div>
+        <form class="form" action="/change_password" method="post">
+            <div class="field">
+                <label class="field__label" for="pw-old">Original password</label>
+                <input id="pw-old" type="password" name="old" placeholder="Original password"
+                       autocomplete="current-password" required>
+            </div>
+            <div class="form__row">
+                <div class="field">
+                    <label class="field__label" for="pw-new">New password</label>
+                    <input id="pw-new" type="password" name="new" placeholder="New password"
+                           maxlength="32" autocomplete="new-password" required>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="pw-new2">Repeat new password</label>
+                    <input id="pw-new2" type="password" name="new2" placeholder="Repeat new password"
+                           maxlength="32" autocomplete="new-password" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="field__label" for="pw-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="pw-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+            <p class="error">{{ t_error }}</p>
+            <div class="form__actions">
+                <button class="btn" type="submit">Update password</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

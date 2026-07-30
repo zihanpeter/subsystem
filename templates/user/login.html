@@ -1,38 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Login - Users - Subsystem</title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <h1> Subsystem </h1>
-        <div class="contents_center">
-            <h2> Login </h2>
-            <form action="/check_login" method="post">
-                <input type="text" name="username" placeholder="Username" required>
-                <br>
-                <input type="password" name="password" placeholder="Password" required>
-                <br>
-                <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
-                <br>
-                <p class="error">{{ t_error }}</p>
-                <br>
-                Haven't got an account yet?
-                <br>
-                <a href="/register"> Register </a>
-                <br>
-                <input type="submit" value="Login">
-            </form>
-        </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
+{% extends 'base.html' %}
+
+{% block title %}Login - Users - Subsystem{% endblock %}
+
+{% block body %}
+<main class="auth">
+    <div class="auth__card">
+        <h1 class="auth__title">Welcome back</h1>
+        <p class="auth__sub">Sign in to recite, post and play.</p>
+
+        <form class="form" action="/check_login" method="post">
+            <div class="field">
+                <label class="field__label" for="login-username">Username</label>
+                <input id="login-username" type="text" name="username" placeholder="Your username"
+                       autocomplete="username" required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="login-password">Password</label>
+                <input id="login-password" type="password" name="password" placeholder="Your password"
+                       autocomplete="current-password" required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="login-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="login-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+
+            <p class="error">{{ t_error }}</p>
+
+            <button class="btn btn--block" type="submit">Login</button>
+        </form>
+
+        <p class="auth__foot">Haven't got an account yet? <a href="/register">Register</a></p>
     </div>
-    </body>
-</html>
+</main>
+{% endblock %}

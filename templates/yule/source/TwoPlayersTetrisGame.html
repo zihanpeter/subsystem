@@ -1,37 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="{{ 'dark' if t_theme == 'black' else 'light' }}">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Two Players Tetris</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/yule/twoPlayersTetris.css') }}">
     <link href="{{ url_for('static', filename='css/white_theme_yule.css') }}" rel="stylesheet">
-    {% if t_theme == 'black' %}
-    <link href="{{ url_for('static', filename='css/black_theme.css') }}" rel="stylesheet">
-    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
 </head>
 <body>
-    <div class="title">
-        Yule - Subsystem
-        <a href="/"> Home </a>
-        |
-        <a href="/reciter"> Reciter </a>
-        |
-        <a href="/forum"> Forum </a>
-        |
-        <a href="/yule"> Yule </a>
-        |
-        <a href="/userlist"> Users </a>
-        |
-        {% if t_username == None %}
-            <a href="/login"> Login </a>
-        {% endif %}
-        {% if t_username != None %}
-            <a href="/login"> Switch Account </a>
-        |
-            <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-        {% endif %}
-        <br>
-    </div>
-    <button id="homeButton" onclick="window.location.href='{{ t_home }}'">Home Page</button>
+    {% include 'partials/game_header.html' %}
     <!-- 在game-container前添加状态显示区域 -->
     <div class="game-status" style="text-align: center; margin: 10px 0;">
         <div style="display: flex; justify-content: space-around; width: 100%;">
@@ -110,11 +89,7 @@
             <button class="modal-button" onclick="resetBothGames()">Play Again</button>
         </div>
     </div>
-    <div class="copy">
-        Developed by <a href="https://github.com/YCY5449">YCY5449</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
+    {% include 'partials/game_footer.html' %}
     <script src="{{ url_for('static', filename='javascript/yule/twoPlayersTetris.js') }}"></script>
 </body>
 </html> 

@@ -1,46 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> {{ t_listname }} - Delete - Reciter - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        <script src="../../static/javascript/show_discuss.js"></script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-         <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
-        </div>
-        <div class="contents">
-            <h3>Sure to delete?</h3>
-            <a href="/show_list?id={{t_id}}">Back</a>
-            <br>
-            <a href="/del_list?id={{t_id}}">Delete</a>
-        </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
+
+{% block title %}{{ t_listname }} - Delete - Reciter - Subsystem{% endblock %}
+
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<section class="card confirm">
+    <span class="confirm__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.9 12.2h9.2L17.5 7"></path>
+            <path d="M10.5 10.8v5.6M13.5 10.8v5.6"></path>
+        </svg>
+    </span>
+    <h1 class="confirm__title">Delete this wordlist?</h1>
+    <p class="confirm__text">
+        &ldquo;{{ t_listname }}&rdquo; will be removed permanently. This cannot be undone.
+    </p>
+    <div class="form__actions form__actions--center">
+        <a class="btn btn--ghost" href="/show_list?id={{ t_id }}">Keep it</a>
+        <a class="btn btn--danger" href="/del_list?id={{ t_id }}">Delete wordlist</a>
     </div>
-    </body>
-</html>
+</section>
+{% endblock %}

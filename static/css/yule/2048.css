@@ -61,20 +61,3 @@ body {
 .tile-1024 { background: #edc53f; color: #f9f6f2; font-size: 25px;width: 87.5px; height: 87.5px; }
 .tile-2048 { background: #edc22e; color: #f9f6f2; font-size: 25px;width: 87.5px; height: 87.5px; }
 
-#homeButton {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 1000;
-}
-
-#homeButton:hover {
-    background: #1976D2;
-}

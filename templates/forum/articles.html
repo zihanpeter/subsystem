@@ -1,168 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> {{ t_dis['title'] }} - Articles - Forum - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        <script src="../../static/javascript/forum/articles.js"></script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-        <!-- 引入KaTeX CSS -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-        <!-- 引入KaTeX JavaScript -->
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"></script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                renderMathInElement(document.body, {
-                    delimiters: [
-                        {left: "$$", right: "$$", display: true},
-                        {left: "\\[", right: "\\]", display: true},
-                        {left: "$", right: "$", display: false},
-                        {left: "\\(", right: "\\)", display: false}
-                    ]
-                });
-            });
-        </script>
-        {% if t_theme == 'black' %}
-        <link href="../static/css/monokai.css" rel="stylesheet">
-        {% endif %}
-        {% if t_theme != 'black' %}
-        <link href="../static/css/default.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Forum - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
-        </div>
-        <div class="contents">
+{% extends 'base.html' %}
+{% set active_nav = 'forum' %}
 
-            {% if t_dis['username'] == t_username or t_admin %}
-                <a href="/modify_articles?id={{ t_dis['id'] }}">Modify</a>
-            <br>
-                <a href="/check_del_articles?id={{ t_dis['id'] }}">Delete</a>
-            {% endif %}
+{% block title %}{{ t_dis['title'] }} - Forum - Subsystem{% endblock %}
 
+{% block head %}
+{% include 'partials/katex.html' %}
+{% endblock %}
 
-            <h2>{{ t_dis['title'] }}</h2>
-       
-            
-            <a href="/profile?username={{ t_dis['username'] }}">{{ t_dis['username'] }}</a>
-            <br>
-            {{ t_dis['timef'] }}
-            <br>
-            <div class="text_show">
-            {{ t_content|safe }}
-
-
-            {% if t_username == None %}
-
-                <a href="/login">Login</a> to send a comment
-
-                {% endif %}
-
-
-            <form action="/articles" method="get">
-
-                Order：
-                <select name="sorter">
-                    {% if t_sorter == 'inverted' %}
-                    <option value="inverted">
-                        Latest
-                    </option>
-                    <option value="positive">
-                        Time sequence
-                    </option>
-                    {% endif %}
-
-                    {% if t_sorter == 'positive' %}
-                    <option value="positive">
-                        Time sequence
-                    </option>
-                    <option value="inverted">
-                        Latest
-                    </option>
-                    {% endif %}
-
-                </select>
-                <input type="hidden" name="id" value="{{t_dis['id']}}">
-                <input type="submit" value="Select">
-
-            </form>
-
-            <div class="show">
-            {% if t_username != None %}
-            <form action="/post_comment" method="post">
-                <textarea name="content" placeholder="Input here" required id="myTextarea" maxlength="1024"></textarea>
-                <input type="hidden" name="id" value="{{t_dis['id']}}">
-                <input type="hidden" name="username" value="{{t_username}}">
-                <br>
-                <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
-                <br>
-                <p class="error">{{ t_error }}</p>
-                <br>
-                <input type="submit" value="Submit">
-            </form>
-                {% endif %}
-
-
-
-
-            {% for i in range(0, t_size) %}
-                <br>
-                <a href="/profile?username={{t_dis['comment'][i]['username']}}">{{t_dis['comment'][i]['username']}}</a>
-                {% if t_dis['comment'][i]['to1'] != None %}
-                    reply
-                    <a href="/profile?username={{ t_dis['comment'][i]['to1'] }}">{{ t_dis['comment'][i]['to1'] }}</a>
-                {% endif %}
-
-
-                <br>
-                {{ t_dis['comment'][i]['timef'] }}
-
-
-                |
-                <a href="#" class="add-text" data-text="@{{t_dis['comment'][i]['username']}}">Reply</a>
-
-
-                {% if t_dis['username'] == t_username or t_admin %}
-                    |
-                    <a href="/del_comment?id={{t_dis['id']}}&num={{i}}&sorter={{t_sorter}}&sum={{t_size}}">Delete</a>
-                {% endif %}
-
-
-
-                <p>{{ t_dis['comment'][i]['content'] }}</p>
-
-                
-            {% endfor %}
-            </div>
+{% block content %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Article</span>
+            <h1>{{ t_dis['title'] }}</h1>
+            <div class="meta">
+                <a href="/profile?username={{ t_dis['username'] }}">{{ t_dis['username'] }}</a>
+                <span class="meta__dot">{{ t_dis['timef'] }}</span>
+                <span class="meta__dot">{{ t_size }} comment{{ '' if t_size == 1 else 's' }}</span>
             </div>
         </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
+        {% if t_dis['username'] == current_user or t_admin %}
+        <div class="page-head__actions">
+            <a class="btn btn--ghost" href="/modify_articles?id={{ t_dis['id'] }}">Modify</a>
+            <a class="btn btn--danger" href="/check_del_articles?id={{ t_dis['id'] }}">Delete</a>
+        </div>
+        {% endif %}
     </div>
-    </body>
-</html>
+
+    <article class="card">
+        <div class="prose">
+            {{ t_content | safe }}
+        </div>
+    </article>
+
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Comments</h2>
+            <form class="form__row form__row--inline" action="/articles" method="get">
+                <select name="sorter" aria-label="Comment order">
+                    <option value="inverted" {% if t_sorter == 'inverted' %}selected{% endif %}>Latest first</option>
+                    <option value="positive" {% if t_sorter == 'positive' %}selected{% endif %}>Time sequence</option>
+                </select>
+                <input type="hidden" name="id" value="{{ t_dis['id'] }}">
+                <button class="btn btn--ghost btn--sm" type="submit">Apply</button>
+            </form>
+        </div>
+
+        {% if current_user %}
+        <form class="form" action="/post_comment" method="post">
+            <div class="field">
+                <label class="field__label" for="myTextarea">Leave a comment</label>
+                <textarea id="myTextarea" name="content" placeholder="Say something nice..."
+                          maxlength="1024" required></textarea>
+            </div>
+            <input type="hidden" name="id" value="{{ t_dis['id'] }}">
+            <input type="hidden" name="username" value="{{ current_user }}">
+            <div class="field">
+                <label class="field__label" for="comment-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="comment-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+            <p class="error">{{ t_error }}</p>
+            <div class="form__actions">
+                <button class="btn" type="submit">Post comment</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="callout"><a href="/login">Login</a> to join the discussion.</p>
+        {% endif %}
+
+        {% if t_size %}
+        <div class="comment-list card__section">
+            {% for i in range(0, t_size) %}
+            {% set c = t_dis['comment'][i] %}
+            <article class="comment">
+                <div class="comment__head">
+                    <a class="comment__author" href="/profile?username={{ c['username'] }}">{{ c['username'] }}</a>
+                    {% if c['to1'] != None %}
+                    <span>replying to
+                        <a href="/profile?username={{ c['to1'] }}">{{ c['to1'] }}</a>
+                    </span>
+                    {% endif %}
+                    <span>{{ c['timef'] }}</span>
+                    {% if current_user %}
+                    <a class="comment__action add-text" href="#" data-text="@{{ c['username'] }}">Reply</a>
+                    {% endif %}
+                    {% if t_dis['username'] == current_user or t_admin %}
+                    <a class="comment__action comment__action--danger"
+                       href="/del_comment?id={{ t_dis['id'] }}&num={{ i }}&sorter={{ t_sorter }}&sum={{ t_size }}">Delete</a>
+                    {% endif %}
+                </div>
+                <p class="comment__body">{{ c['content'] }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted text-center card__section">No comments yet.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='javascript/forum/articles.js') }}" defer></script>
+{% endblock %}

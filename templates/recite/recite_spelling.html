@@ -1,113 +1,50 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--    <head>-->
-<!--        <meta charset="UTF-8">-->
-<!--        <title> {{ t_listname }} - Learn spelling - Reciter</title>-->
-<!--        <link href="../static/css/white_theme.css" rel="stylesheet">-->
-<!--        {% if t_theme == 'black' %}-->
-<!--        <link href="../static/css/black_theme.css" rel="stylesheet">-->
-<!--        {% endif %}-->
-<!--    </head>-->
-<!--    <body>-->
-<!--        <div class="title">-->
-<!--            Reciter-->
-<!--            <a href="/"> Home </a>-->
-<!--            |-->
-<!--            <a href="/lists"> Wordlists </a>-->
-<!--            |-->
-<!--            <a href="/forum"> Forum </a>-->
-<!--            |-->
-<!--            <a href="/yule"> Yule </a>-->
-<!--            |-->
-<!--            <a href="/userlist"> Users </a>-->
-<!--            |-->
-<!--            {% if t_username == None %}-->
-<!--                <a href="/login"> Login </a>-->
-<!--            {% endif %}-->
-<!--            {% if t_username != None %}-->
-<!--                <a href="/login"> Switch Account </a>-->
-<!--            |-->
-<!--                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>-->
-<!--            {% endif %}-->
-<!--        </div>-->
-<!--        <div class="contents_center">-->
-<!--            Pattern: {{ t_pat }}-->
-<!--            <br>-->
-<!--            {{ t_num }} {{ t_rem }} {{ t_fir }}-->
-<!--            <br>-->
-<!--            <h1>{{ t_zh }}</h1>-->
-<!--            <form action="/check_recite" method="get">-->
-<!--                <input type="text" name="ans" placeholder="Spell here" autocomplete="off" autofocus>-->
-<!--                <br>-->
-<!--                <input type="submit" value="Submit">-->
-<!--            </form>-->
-<!--        </div>-->
-<!--       <div class="copy">-->
-<!--            Developed by PeterLu. <br>-->
-<!--            2024, &copy Reciter Dev Team <br>-->
-<!--            All rights reserved.-->
-<!--        </div>-->
-<!--    </body>-->
-<!--</html>-->
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ t_listname }} - Learn spelling - Reciter - Subsystem</title>
-    <script defer>
-        let en = {{ t_en | tojson }};
-        let zh = {{ t_zh | tojson }};
-        let sm = {{ t_sm }};
-        let sen = {{ t_sen | tojson }};
-    </script>
-    <script src="../static/javascript/reciter/recite_spelling.js" defer></script>
-    <meta charset="UTF-8">
-    <link href="../static/css/white_theme.css" rel="stylesheet">
-    {% if t_theme == 'black' %}
-    <link href="../static/css/black_theme.css" rel="stylesheet">
-    {% endif %}
-</head>
-<body>
-    <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% block title %}{{ t_listname }} - Learn spelling - Reciter - Subsystem{% endblock %}
+
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <section class="stage">
+        <div class="stage__stats">
+            <span class="chip chip--accent">{{ t_pat }}</span>
+            <span class="chip">Remaining <span class="chip__num" id="remain"></span></span>
+            <span class="chip">Repeats left <span class="chip__num" id="wordcnt"></span></span>
+            <span class="chip chip--success" id="first"></span>
         </div>
-    <div class="contents_center">
-        Pattern: {{ t_pat }}
-        <div id="first"></div>
-        <div id="remain"></div>
-        <div id="wordcnt"></div>
-        <h1 id="word"></h1>
-        <h1 id="user_ans"></h1>
-        <h1 id="tip"></h1>
-        <p id="sen"></p>
-        <input type="text" id="input" onkeydown="if (event.key === 'Enter') checkInput();">
-        <br>
-        <button id="submit" onclick="checkInput();">Submit</button>
-        <br>
-        <a href="/reciter" id="finish"></a>
-    </div>
-    <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
-</body>
-</html>
+
+        <h1 class="stage__word" id="word"></h1>
+        <p class="stage__answer" id="user_ans"></p>
+        <p class="stage__tip" id="tip"></p>
+        <p class="stage__sen" id="sen"></p>
+
+        <input class="stage__input" type="text" id="input" placeholder="Spell it here"
+               autocomplete="off" autocapitalize="off" spellcheck="false" autofocus
+               onkeydown="if (event.key === 'Enter') checkInput();">
+
+        <div class="stage__controls">
+            <button class="btn" id="submit" type="button" onclick="checkInput();">
+                Submit <span class="kbd">&crarr;</span>
+            </button>
+        </div>
+
+        <a class="btn btn--soft stage__finish" href="/reciter" id="finish"></a>
+    </section>
+
+    <p class="text-muted text-center">
+        Press <span class="kbd">Enter</span> to submit, and again to continue after a mistake.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let en = {{ t_en | tojson }};
+    let zh = {{ t_zh | tojson }};
+    let sm = {{ t_sm | tojson }};
+    let sen = {{ t_sen | tojson }};
+</script>
+<script src="{{ url_for('static', filename='javascript/reciter/recite_spelling.js') }}" defer></script>
+{% endblock %}

@@ -1,42 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Register - Users - Subsystem</title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <h1> Subsystem </h1>
-        <div class="contents_center">
-            <h2> Register </h2>
-            Usernames can be made up of only three types of characters:
-            <br>
-            1. English letters 2. Chinese characters 3. Numbers
-            <br>
-            No longer than 32 characters.
-            <br>
-            <form action="/check_register" method="post">
-                <input type="text" name="username" placeholder="Username" maxlength="32" required>
-                <br>
-                <input type="password" name="password" placeholder="Password" maxlength="32" required>
-                <input type="password" name="password2" placeholder="Repeat password" maxlength="32" required>
-                <br>
-                <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
-                <input type="text" name="user_captcha" placeholder="Graph validate code" maxlength="4" required>
+{% extends 'base.html' %}
 
-                <br>
-                <p class="error">{{ t_error }}</p>
-                <br>
-                <input type="submit" value="Register">
-            </form>
-        </div>
-        <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
+{% block title %}Register - Users - Subsystem{% endblock %}
+
+{% block body %}
+<main class="auth">
+    <div class="auth__card">
+        <h1 class="auth__title">Create your account</h1>
+        <p class="auth__sub">Letters, Chinese characters and digits only, up to 32 characters.</p>
+
+        <form class="form" action="/check_register" method="post">
+            <div class="field">
+                <label class="field__label" for="reg-username">Username</label>
+                <input id="reg-username" type="text" name="username" placeholder="Pick a username"
+                       maxlength="32" autocomplete="username" required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="reg-password">Password</label>
+                <input id="reg-password" type="password" name="password" placeholder="Password"
+                       maxlength="32" autocomplete="new-password" required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="reg-password2">Repeat password</label>
+                <input id="reg-password2" type="password" name="password2" placeholder="Repeat password"
+                       maxlength="32" autocomplete="new-password" required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="reg-captcha">Validate code</label>
+                <div class="captcha">
+                    <img src="data:image/png;base64,{{ t_captcha_image | safe }}" alt="Captcha">
+                    <input id="reg-captcha" type="text" name="user_captcha" placeholder="4 characters"
+                           maxlength="4" autocomplete="off" required>
+                </div>
+            </div>
+
+            <p class="error">{{ t_error }}</p>
+
+            <button class="btn btn--block" type="submit">Register</button>
+        </form>
+
+        <p class="auth__foot">Already have an account? <a href="/login">Login</a></p>
     </div>
-    </body>
-</html>
+</main>
+{% endblock %}

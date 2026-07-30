@@ -1,83 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title> Users - Subsystem </title>
-        <link href="../static/css/white_theme.css" rel="stylesheet">
-        {% if t_theme == 'black' %}
-        <link href="../static/css/black_theme.css" rel="stylesheet">
-        {% endif %}
-    </head>
-    <body>
-        <div class="title">
-            Users - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% extends 'base.html' %}
+{% set active_nav = 'users' %}
+
+{% block title %}Users - Subsystem{% endblock %}
+
+{% block content %}
+{% set admins = t_dics | selectattr('admin') | list %}
+{% set members = t_dics | rejectattr('admin') | list %}
+<div class="stack">
+    <div class="page-head">
+        <div>
+            <span class="page-head__eyebrow">Community</span>
+            <h1>Users</h1>
+            <p class="page-head__sub">{{ admins | length }} administrators and {{ members | length }} members.</p>
         </div>
-        <div class="contents">
-            <h2>Administrators</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Username</th>
-                        <th scope="col">Register Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_dics %}
-                        {% if i['admin'] %}
-                            <tr>
-                                <td scope="row">
-                                    <a href="/profile?username={{ i['username'] }}">{{ i['username'] }} </a>
-                                </td>
-                                <td>{{ i['timef'] }}</td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-            <h2>Users</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Username</th>
-                        <th scope="col">Register Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for i in t_dics %}
-                        {% if not i['admin'] %}
-                            <tr>
-                                <td scope="row">
-                                    <a href="/profile?username={{ i['username'] }}">{{ i['username'] }} </a>
-                                </td>
-                                <td>{{ i['timef'] }}</td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-       <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
     </div>
-    </body>
-</html>
+
+    <section class="stack stack--tight">
+        <h2>Administrators</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Register time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in admins %}
+                    <tr>
+                        <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
+                        <td class="num">{{ i['timef'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not admins %}
+            <p class="table-empty">No administrators yet.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="stack stack--tight">
+        <h2>Members</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Register time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in members %}
+                    <tr>
+                        <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
+                        <td class="num">{{ i['timef'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not members %}
+            <p class="table-empty">No members yet.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

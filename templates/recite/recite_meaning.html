@@ -1,118 +1,53 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--    <head>-->
-<!--        <meta charset="UTF-8">-->
-<!--        <title> {{ t_listname }} - Learn meaning - Reciter </title>-->
-<!--        <link href="../static/css/white_theme.css" rel="stylesheet">-->
-<!--        {% if t_theme == 'black' %}-->
-<!--        <link href="../static/css/black_theme.css" rel="stylesheet">-->
-<!--        {% endif %}-->
-<!--        <script type="text/javascript">-->
-<!--            document.onkeydown = function(event) {-->
-<!--                if (event.keyCode == 40 || event.keyCode == 83) {-->
-<!--                    window.location.href = '/show_tip';-->
-<!--                }-->
-<!--            };-->
-<!--        </script>-->
-<!--    </head>-->
-<!--    <body>-->
-<!--        <div class="title">-->
-<!--            Reciter-->
-<!--            <a href="/"> Home </a>-->
-<!--            |-->
-<!--            <a href="/lists"> Wordlists </a>-->
-<!--            |-->
-<!--            <a href="/forum"> Forum </a>-->
-<!--            |-->
-<!--            <a href="/yule"> Yule </a>-->
-<!--            |-->
-<!--            <a href="/userlist"> Users </a>-->
-<!--            |-->
-<!--            {% if t_username == None %}-->
-<!--                <a href="/login"> Login </a>-->
-<!--            {% endif %}-->
-<!--            {% if t_username != None %}-->
-<!--                <a href="/login"> Switch Account </a>-->
-<!--            |-->
-<!--                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>-->
-<!--            {% endif %}-->
-<!--        </div>-->
-<!--        <div class="contents_center">-->
-<!--            Pattern: {{ t_pat }}-->
-<!--            <br>-->
-<!--            {{ t_num }} {{ t_rem }} {{ t_fir }}-->
-<!--            <br>-->
-<!--            <h1>{{ t_en }}</h1>-->
-<!--            Please recall the meaning of the word.-->
-<!--            <br>-->
-<!--            <a href="/show_tip">Continue</a>-->
-<!--        </div>-->
-<!--        <div class="copy">-->
-<!--            Developed by PeterLu. <br>-->
-<!--            2024, &copy Reciter Dev Team <br>-->
-<!--            All rights reserved.-->
-<!--        </div>-->
-<!--    </body>-->
-<!--</html>-->
+{% extends 'base.html' %}
+{% set active_nav = 'reciter' %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ t_listname }} - Learn meaning - Reciter - Subsystem</title>
-    <script defer>
-        let en = {{ t_en | tojson }};
-        let zh = {{ t_zh | tojson }};
-        let sm = {{ t_sm }};
-        let sen = {{ t_sen | tojson }};
-    </script>
-    <script src="../static/javascript/reciter/recite_meaning.js" defer></script>
-    <meta charset="UTF-8">
-    <link href="../static/css/white_theme.css" rel="stylesheet">
-    {% if t_theme == 'black' %}
-    <link href="../static/css/black_theme.css" rel="stylesheet">
-    {% endif %}
-</head>
-<body>
-    <div class="title">
-            Reciter - Subsystem
-            <a href="/"> Home </a>
-            |
-            <a href="/reciter"> Reciter </a>
-            |
-            <a href="/forum"> Forum </a>
-            |
-            <a href="/yule"> Yule </a>
-            |
-            <a href="/userlist"> Users </a>
-            |
-            {% if t_username == None %}
-                <a href="/login"> Login </a>
-            {% endif %}
-            {% if t_username != None %}
-                <a href="/login"> Switch Account </a>
-            |
-                <a href="/profile?username={{ t_username }}"> {{ t_username }} </a>
-            {% endif %}
+{% block title %}{{ t_listname }} - Learn meaning - Reciter - Subsystem{% endblock %}
+
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<div class="stack">
+    <section class="stage">
+        <div class="stage__stats">
+            <span class="chip chip--accent">{{ t_pat }}</span>
+            <span class="chip">Remaining <span class="chip__num" id="remain"></span></span>
+            <span class="chip">Repeats left <span class="chip__num" id="wordcnt"></span></span>
+            <span class="chip chip--success" id="first"></span>
         </div>
-    <div class="contents_center">
-        Pattern: {{ t_pat }}
-        <div id="first"></div>
-        <div id="remain"></div>
-        <div id="wordcnt"></div>
-        <h1 id="word"></h1>
-        <h1 id="tip"></h1>
-        <p id="sen"></p>
-        <p id="guide"></p>
-        <button id="know" onclick="checkKnow();">Know (A/ArrLeft)</button>
-        <button id="next" onclick="showTip();">Next (S/ArrDown)</button>
-        <button id="donotknow" onclick="checkDonotknow();">Don't know (D/ArrRight)</button>
-        <br>
-        <a href="/reciter" id="finish"></a>
-    </div>
-    <div class="copy">
-        Developed by <a href="https://github.com/zihanpeter">zihanpeter</a>. <br>
-        2024 - 2025, &copy Subsystem Dev Team<br>
-        All rights reserved.
-    </div>
-</body>
-</html>
+
+        <h1 class="stage__word" id="word"></h1>
+        <p class="stage__tip" id="tip"></p>
+        <p class="stage__sen" id="sen"></p>
+        <p class="stage__guide" id="guide"></p>
+
+        <div class="stage__controls">
+            <button class="btn btn--ghost" id="next" type="button" onclick="showTip();">
+                Show meaning <span class="kbd">S</span>
+            </button>
+            <button class="btn" id="know" type="button" onclick="checkKnow();">
+                Know <span class="kbd">A</span>
+            </button>
+            <button class="btn btn--danger" id="donotknow" type="button" onclick="checkDonotknow();">
+                Don't know <span class="kbd">D</span>
+            </button>
+        </div>
+
+        <a class="btn btn--soft stage__finish" href="/reciter" id="finish"></a>
+    </section>
+
+    <p class="text-muted text-center">
+        Arrow keys work too: <span class="kbd">&darr;</span> show,
+        <span class="kbd">&larr;</span> know, <span class="kbd">&rarr;</span> don't know.
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let en = {{ t_en | tojson }};
+    let zh = {{ t_zh | tojson }};
+    let sm = {{ t_sm | tojson }};
+    let sen = {{ t_sen | tojson }};
+</script>
+<script src="{{ url_for('static', filename='javascript/reciter/recite_meaning.js') }}" defer></script>
+{% endblock %}

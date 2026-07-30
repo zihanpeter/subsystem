@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ 'dark' if t_theme == 'black' else 'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Subsystem{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    {% if t_theme == 'black' %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/monokai.css') }}">
+    {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/default.css') }}">
+    {% endif %}
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% include 'partials/header.html' %}
+
+    {% block body %}
+    <main class="page{% block page_class %}{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+    {% endblock %}
+
+    {% include 'partials/footer.html' %}
+
+    <script src="{{ url_for('static', filename='javascript/ui.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
