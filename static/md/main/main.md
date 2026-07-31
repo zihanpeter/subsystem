@@ -1,12 +1,13 @@
 # News
-## Transfer: Subsystem
 
-Subsystem was refactored in order to facing the future.
+## Site refresh (2026)
+The whole site now shares one design system: a common header and footer, light / dark theme everywhere (including game pages), and clearer layouts for Reciter, Forum, and Yule.
 
-It's engaging website which includes different systems.
+## Reciter: spaced repetition
+Reciting is no longer a one-shot “drill each word twice” session. Progress is saved per account and per wordlist. Each day you get a fixed queue of due words; **Know** / **Don't know** (and spelling correct / wrong) update long-term review dates. See **Systems Intro → Reciter** below for details.
 
-## What's New in Reciter
-Reciter is using JavaScript to run, which is faster and safer.
+## Branding
+Subsystem now uses a consistent site icon in the header and in the browser tab.
 
 --------
 # Basic info & rules
@@ -19,7 +20,7 @@ In the meantime, you can change your password or edit your profile here
 Please use the [Markdown](https://help.luogu.com.cn/rules/academic/handbook/markdown), 
 [KaTeX](https://katex.org/docs/supported.html) To edit your profile
 
-You can switch theme colors on your profile page
+You can switch theme colors from the moon / sun button in the top bar (works on every page). Logged-in users also keep the choice on their profile.
 
 ## Admin team
 To maintain order in the community, we set up a team of custodians
@@ -51,92 +52,85 @@ Please use the
 [KaTeX](https://katex.org/docs/supported.html) To edit your article
 
 ## Reciter
-Welcome to Reciter!
+Reciter is the vocabulary trainer: create wordlists, then review them with spaced repetition. Log in before you start — progress is stored for your account.
 
-In order for you to better use Reciter, please read the following tips first
+### 1. Browse and open a list
+Open **Reciter** in the top menu. You can filter by difficulty or search by list name. Official lists and user lists are shown separately.
 
-### 1. Create a vocabulary
+Open a list to see its words, today's progress chips, and the study buttons.
 
-Click `Wordlists` in the menu bar and click `Create a new wordlist` at the top
+### 2. Create or edit a wordlist
+Click **Create a new wordlist**. Enter a name (up to $64$ characters), choose difficulty, paste the words, then submit.
 
-On the new page, enter the form name (up to $64$ characters), the word information, and select the difficulty!
+You can later **Modify** or **Delete** lists you own (admins can manage others when needed).
 
-You can delete or modify the vocabulary you create
+#### Without example sentences
+For $n$ words, enter $2n$ lines: English, Chinese, English, Chinese, …
 
-#### (1) For terms without example sentences/explanations
-Format requirements: If there are $n$($n$is a positive integer) words, then you will enter a total of $2n$lines. For each word, the first act is English, the second act is Chinese, enter each word in turn (there can be Spaces in each line)
-
-Example:
 ```
 hello
-hello
+你好
 banana
-Banana
+香蕉
 ```
 
-#### (2) For vocabulary with example sentences/explanations
+#### With example sentences / explanations
+Choose **Include example sentence/explanation**. For $n$ words, enter $3n$ lines: English, Chinese, example, …
 
-Format requirements: If there are $n$($n$is a positive integer) words, then you will enter a total of $3n$lines. For each word, enter the first word in English, the second in Chinese, and the third in an example/explanation (there can be Spaces in each line).
-
-Please select the option `Include example sentence/explanation` in the drop-down list
-
-Note: If there is no example sentence for this word, please use "example" and other characters in the line, otherwise there will be recognition problems
-
-Example:
+If a word has no example, put a placeholder on that line (for example `(CASE)`), or recognition may break.
 
 ```
 hello
-hello
+你好
 Hello everyone!
 banana
-Banana
+香蕉
 (CASE)
 ```
 
-#### tips:
-- English words Characters such as `.` are not supported due to underlying reasons in the program. Otherwise, 500ERROR May occur
-- [PeterLu](https://subsystem.top/profile?username=PeterLu) needs to give the criteria for difficulty grading. [Bronia](https://subsystem.top/profile?username=Bronia) doesn't know the specific grading
+#### Format tips
+- Do not put characters such as `.` inside English headwords; that can cause server errors.
+- Difficulty grades are set by list authors; ask [PeterLu](https://subsystem.top/profile?username=PeterLu) if you need the official scale.
 
-### 2. Recite vocabulary lists
-#### (1) Enter the vocabulary
-You can search the vocabulary name or find the vocabulary you want to memorize by `List ID` jump and so on.
+### 3. How reviewing works
+On a list page, start with **Learn meaning** (English → Chinese) or **Learn spelling** (Chinese → type English). Both modes share the same progress for each word.
 
-Enter the vocabulary list and click on `Learn meaning` to recite the meaning, and `Learn spelling` to recite the spelling. Both modes share the same long-term progress for each word.
+#### Today's queue
+The first time you open a list on a calendar day, Reciter builds a **today queue** from words whose next review date is today or earlier. That queue stays fixed for the rest of the day.
 
-On the wordlist page you can also:
+Status chips mean:
+
+| Chip | Meaning |
+|-|-|
+| Today $a$ / $b$ | Words answered correctly at least once today / size of today's queue |
+| Retry | Marked wrong today; must be answered correctly once more |
+| Left | Still waiting in today's queue |
+| Mastered | Words at a high familiarity level / total words in the list |
+
+Extra actions on the list page:
 
 - **Restart whole list today** — put every word into today's queue again
-- **Review wrong words** — rebuild today's queue from words you have marked wrong before
+- **Review wrong words** — rebuild today's queue from words you have gotten wrong before
 
-#### (2) Spaced repetition and today's queue
+#### Spaced repetition
+Each word has a level and a next-review date.
 
-Reciter uses a simple spaced-repetition schedule. Each word has a familiarity level and a next-review date.
+- **Know** (or a correct spelling) raises the level and delays the next review (about $0$, $1$, $2$, $4$, $7$, $14$, $30$, then $60$ days).
+- **Don't know** (or a wrong spelling) resets the level, keeps the word due today, and adds it to **Retry** until you get it right once.
 
-When you open a list for the day, the system builds a **today queue** from words whose next review date is today or earlier. That queue stays fixed for the day.
+When **Left** reaches $0$ and **Retry** is empty, the session shows **Today finished**. Come back on later days for words that become due again.
 
-During a session the chips show:
+#### Learn meaning controls
+Reveal the answer before you rate yourself.
 
-- **Today done/target** — how many of today's words you have answered correctly at least once
-- **Retry** — words you marked wrong today and still need to answer correctly once more
-- **Left** — words still in the queue
+| Action | Keys |
+|-|-|
+| Show meaning | `S` or ↓ |
+| Know | `A` or ← |
+| Don't know | `D` or → |
 
-**Know** (or a correct spelling) raises the word's level and postpones the next review (about 0, 1, 2, 4, 7, 14, 30, then 60 days).
-
-**Don't know** (or a wrong spelling) resets the level, keeps the word due today, and puts it into **Retry** until you get it right once.
-
-When the queue is empty, the page shows **Today finished**. Come back on later days for words that become due again.
-
-#### (3) Quick use tips
-
-The single-line input field in `Learn spelling` mode automatically focuses for quick typing. After a mistake, press `Enter` again to continue (the system does not re-check the box).
-
-`Learn meaning` keyboard shortcuts:
-
-Operate | button
--|-
-Show meaning|Down arrow / S
-Know|Left arrow / A
-Don't know|Right arrow / D
+#### Learn spelling controls
+Type the English word and press **Enter** (or **Submit**). After a mistake, the correct word is shown; press **Enter** again to continue (the box is not re-checked).
 
 ## Yule
 A project before Christmas.
