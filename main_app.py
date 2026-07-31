@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request, abort
+from flask import Flask, render_template, send_from_directory, session, request, abort
 import markdown
 
 from user_app import user_app
@@ -27,6 +27,11 @@ def get_theme():
 def inject_layout_context(): # 布局(导航栏/主题)所需的全局变量
     return {'current_user': session.get('username'),
             't_theme': get_theme()}
+
+@app.route('/favicon.ico') # 浏览器默认会请求根路径图标
+def favicon():
+    return send_from_directory('static/images', 'favicon.ico',
+                               mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
 def main():
