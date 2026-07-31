@@ -99,33 +99,44 @@ Banana
 
 ### 2. Recite vocabulary lists
 #### (1) Enter the vocabulary
-You can search the vocabulary name or find the vocabulary you want to memorize by `List ID` jump and so on
+You can search the vocabulary name or find the vocabulary you want to memorize by `List ID` jump and so on.
 
-Enter the vocabulary list and click on `Learn meaning` to recite the meaning, and `Learn spelling` to recite the spelling
+Enter the vocabulary list and click on `Learn meaning` to recite the meaning, and `Learn spelling` to recite the spelling. Both modes share the same long-term progress for each word.
 
-#### (2) A description of the information presented during recitation
+On the wordlist page you can also:
 
-After entering recitation mode, you will see two numbers and `first time`.
+- **Restart whole list today** — put every word into today's queue again
+- **Review wrong words** — rebuild today's queue from words you have marked wrong before
 
-The first number indicates the number of remaining words. The second number indicates how many more times the word needs to be recited, each word defaults to two times, and the number will be $-1$ when recited correctly.
+#### (2) Spaced repetition and today's queue
 
-When the second digit is cleared, the total number of words corresponds to $-1$.
+Reciter uses a simple spaced-repetition schedule. Each word has a familiarity level and a next-review date.
 
-If you encounter the word for the first time, the top will show 'first time', if the first time to recite correctly (or choose to know the meaning), the second number will be directly cleared to zero, and the total number of direct $-1$
+When you open a list for the day, the system builds a **today queue** from words whose next review date is today or earlier. That queue stays fixed for the day.
+
+During a session the chips show:
+
+- **Today done/target** — how many of today's words you have answered correctly at least once
+- **Retry** — words you marked wrong today and still need to answer correctly once more
+- **Left** — words still in the queue
+
+**Know** (or a correct spelling) raises the word's level and postpones the next review (about 0, 1, 2, 4, 7, 14, 30, then 60 days).
+
+**Don't know** (or a wrong spelling) resets the level, keeps the word due today, and puts it into **Retry** until you get it right once.
+
+When the queue is empty, the page shows **Today finished**. Come back on later days for words that become due again.
 
 #### (3) Quick use tips
 
-The single-line input field in `Learn spelling` mode automatically enters the input state for quick input. In particular, you can do everything in this mode using only the keyboard
+The single-line input field in `Learn spelling` mode automatically focuses for quick typing. After a mistake, press `Enter` again to continue (the system does not re-check the box).
 
-In `Learn spelling` mode, when You mistype a word and enter the prompt page, the system doesn't check to see if you typed it correctly in the box. This means you can simply press `Enter` or click the `Continue` button to skip.
-
-`Learn meaning` Support keyboard quick jump, key corresponding to the following
+`Learn meaning` keyboard shortcuts:
 
 Operate | button
 -|-
-Continue|Down arrow / S
-Don't know|Right arrow / D
+Show meaning|Down arrow / S
 Know|Left arrow / A
+Don't know|Right arrow / D
 
 ## Yule
 A project before Christmas.

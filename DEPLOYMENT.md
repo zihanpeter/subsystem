@@ -53,6 +53,35 @@ chmod 600 /opt/subsystem/.env
 
 请确认 `root@localhost` 可用该密码登录，且有 `subsystem` 库权限。
 
+Reciter 间隔重复需要额外两张表（首次部署或升级时执行一次）：
+
+```sql
+USE subsystem;
+
+CREATE TABLE IF NOT EXISTS word_progress (
+    username VARCHAR(64) NOT NULL,
+    list_id VARCHAR(128) NOT NULL,
+    word VARCHAR(255) NOT NULL,
+    level TINYINT NOT NULL DEFAULT 0,
+    next_review DATE NOT NULL,
+    seen INT NOT NULL DEFAULT 0,
+    correct INT NOT NULL DEFAULT 0,
+    wrong INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (username, list_id, word),
+    INDEX idx_due (username, list_id, next_review)
+);
+
+CREATE TABLE IF NOT EXISTS daily_task (
+    username VARCHAR(64) NOT NULL,
+    list_id VARCHAR(128) NOT NULL,
+    day DATE NOT NULL,
+    target_json TEXT NOT NULL,
+    done_json TEXT NOT NULL,
+    retry_json TEXT NOT NULL,
+    PRIMARY KEY (username, list_id, day)
+);
+```
+
 ## 5. 配置 systemd 服务
 
 创建 `/etc/systemd/system/subsystem.service`：

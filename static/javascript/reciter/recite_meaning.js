@@ -1,77 +1,101 @@
-let cnt = Array(en.length).fill(2), firstime = Array(en.length).fill(true);
-let idx = 0, flag = false;
+let card = null;
+let revealed = false;
+let busy = false;
 
-function deleteWord(id) {
-    en.splice(id, 1);
-    zh.splice(id, 1);
-    cnt.splice(id, 1);
-    firstime.splice(id, 1);
-    if (sm) sen.splice(id, 1)
+function setStats(stats) {
+    if (!stats) return;
+    document.getElementById('done').innerText = stats.done;
+    document.getElementById('target').innerText = stats.target;
+    document.getElementById('retry').innerText = stats.retry;
+    document.getElementById('remain').innerText = stats.remaining;
 }
 
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function showWord() {
-    flag = false;
-    idx = getRandomInt(0, en.length);
-    document.getElementById('word').innerText = en[idx];
-    document.getElementById('sen').innerText = '';
+function showFinished() {
+    card = null;
+    revealed = false;
+    document.getElementById('word').innerText = 'Today finished';
     document.getElementById('tip').innerText = '';
-    if (firstime[idx]) document.getElementById('first').innerText = 'first time';
-    else document.getElementById('first').innerText = '';
-    document.getElementById('remain').innerText = en.length;
-    document.getElementById('wordcnt').innerText = cnt[idx];
+    document.getElementById('sen').innerText = '';
+    document.getElementById('guide').innerText = 'You have completed today\'s words for this list.';
+    document.getElementById('know').disabled = true;
+    document.getElementById('donotknow').disabled = true;
+    document.getElementById('next').disabled = true;
+    document.getElementById('finish').innerText = 'Back to wordlist';
+}
+
+function showCard(nextCard, stats) {
+    setStats(stats);
+    if (!nextCard || (stats && stats.finished)) {
+        showFinished();
+        return;
+    }
+    card = nextCard;
+    revealed = false;
+    document.getElementById('word').innerText = card.word;
+    document.getElementById('tip').innerText = '';
+    document.getElementById('sen').innerText = '';
     document.getElementById('guide').innerText = 'Please recall the meaning of the word.';
     document.getElementById('know').disabled = true;
     document.getElementById('donotknow').disabled = true;
     document.getElementById('next').disabled = false;
+    document.getElementById('finish').innerText = '';
 }
 
 function showTip() {
-    flag = true;
-    document.getElementById('tip').innerText = zh[idx];
-    if (sm) document.getElementById('sen').innerText = sen[idx];
+    if (!card || revealed || busy) return;
+    revealed = true;
+    document.getElementById('tip').innerText = card.meaning;
+    if (sm && card.example) {
+        document.getElementById('sen').innerText = card.example;
+    }
     document.getElementById('guide').innerText = '';
     document.getElementById('know').disabled = false;
     document.getElementById('donotknow').disabled = false;
     document.getElementById('next').disabled = true;
 }
 
+function rate(rating) {
+    if (!card || !revealed || busy) return;
+    busy = true;
+    var word = card.word;
+    fetch('/recite/rate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({list_id: listId, word: word, rating: rating}),
+        credentials: 'same-origin',
+    }).then(function (res) {
+        if (!res.ok) throw new Error('rate failed');
+        return res.json();
+    }).then(function (data) {
+        showCard(data.card, data.stats);
+    }).catch(function () {
+        document.getElementById('guide').innerText = 'Could not save progress. Try again.';
+    }).finally(function () {
+        busy = false;
+    });
+}
 
 function checkKnow() {
-    cnt[idx]--;
-    if (firstime[idx] || cnt[idx] === 0) {
-        deleteWord(idx);
-    }
-    if (en.length === 0) {
-        document.getElementById('know').disabled = true;
-        document.getElementById('donotknow').disabled = true;
-        document.getElementById('next').disabled = true;
-        document.getElementById('finish').innerText = 'Finished';
-    } else {
-        showWord();
-    }
+    rate('know');
 }
 
 function checkDonotknow() {
-    firstime[idx] = false;
-    cnt[idx] = 2;
-    showWord();
+    rate('dont');
 }
 
-document.addEventListener("keydown", function(event) {
-    let key = event.key.length === 1 ? event.key.toLowerCase() : event.key; // 不区分大小写
-    if (key === "s" || key === "ArrowDown") {
-        if (!flag) showTip();
+document.addEventListener('keydown', function (event) {
+    var key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    if (key === 's' || key === 'ArrowDown') {
+        if (!revealed) showTip();
     }
-    if (key === "a" || key === "ArrowLeft") {
-        if (flag) checkKnow();
+    if (key === 'a' || key === 'ArrowLeft') {
+        if (revealed) checkKnow();
     }
-    if (key === "d" || key === "ArrowRight") {
-        if (flag) checkDonotknow();
+    if (key === 'd' || key === 'ArrowRight') {
+        if (revealed) checkDonotknow();
     }
 });
 
-window.onload = showWord;
+window.onload = function () {
+    showCard(initialCard, initialStats);
+};

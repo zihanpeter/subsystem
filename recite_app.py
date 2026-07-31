@@ -1,7 +1,7 @@
-from flask import render_template, request, session, redirect, Blueprint, abort
+from flask import render_template, request, session, redirect, Blueprint, abort, jsonify
 import uuid
 import time
-from lib import dbConnecter, defender
+from lib import dbConnecter, defender, srs, srs_store
 from lib.config_loader import get_config
 
 from user_app import user_app
@@ -38,6 +38,31 @@ recite_app.secret_key = get_config('SECRET_KEY')
         sm BOOl, 
         sen TEXT
     );
+
+    -- Spaced repetition progress (per user, list, English word)
+    CREATE TABLE word_progress (
+        username VARCHAR(64) NOT NULL,
+        list_id VARCHAR(128) NOT NULL,
+        word VARCHAR(255) NOT NULL,
+        level TINYINT NOT NULL DEFAULT 0,
+        next_review DATE NOT NULL,
+        seen INT NOT NULL DEFAULT 0,
+        correct INT NOT NULL DEFAULT 0,
+        wrong INT NOT NULL DEFAULT 0,
+        PRIMARY KEY (username, list_id, word),
+        INDEX idx_due (username, list_id, next_review)
+    );
+
+    -- Daily review queue for a user + list
+    CREATE TABLE daily_task (
+        username VARCHAR(64) NOT NULL,
+        list_id VARCHAR(128) NOT NULL,
+        day DATE NOT NULL,
+        target_json TEXT NOT NULL,
+        done_json TEXT NOT NULL,
+        retry_json TEXT NOT NULL,
+        PRIMARY KEY (username, list_id, day)
+    );
 '''
 
 def get_theme():
@@ -63,6 +88,18 @@ def toStr(l):
         str += i
         str += '|'
     return str
+
+def load_list_words(list_id):
+    """Load a lists row and return (row, words) or (None, None)."""
+    rows = dbConnecter.read_data('lists', 'id', list_id)
+    if not rows:
+        return None, None
+    res = rows[0]
+    en = toList(res['en'])
+    zh = toList(res['zh'])
+    sen = toList(res['sen']) if res['sm'] else []
+    words = srs.parse_list_words(en, zh, sen, res['sm'])
+    return res, words
 
 @recite_app.route('/reciter', methods=["GET"]) # 依据条件展示表格列表
 def reciter():
@@ -271,66 +308,77 @@ def check_create():
 def recite():
     if session.get('username') == None:
         return redirect('/login')
-    id = request.args.get('id')
-    # res = db.lists.find_one({'id': id})
-    res = dbConnecter.read_data('lists', 'id', id)[0]
-    dic = {}
-    dic['username'] = session.get('username')
-    dic['pat'] = request.args.get('pattern')
-    ens = res['en']
-    zhs = res['zh']
-    sens = res['sen']
-    en, zh, sen = [], [], []
-    en = toList(ens)
-    zh = toList(zhs)
-    # dic['num'] = len(res['en'])
-    # dic['show'] = random.randint(0, dic['num'] - 1)
-    if res['sm']:
-        sen = toList(sens)
-    # dic['sen'] = res['sen']
-    # dic['tong'] = {}
-    # dic['list_id'] = id
-    # dic['list_username'] = res['username']
-    # dic['listname'] = res['listname']
-    # dic['difficulty'] = res['difficulty']
-    # for i in dic['en']:
-    #     dic['tong'][i] = 2
-    # dic['fir'] = {}
-    # for i in dic['en']:
-    #     dic['fir'][i] = True
-    # db.temp.delete_one({'username': session.get('username')})
-    # db.temp.insert_one(dic)
-    # dic = db.temp.find_one({'username': session.get('username')})
-    # fir = ""
-    # if dic['fir'][dic['en'][dic['show']]]:
-    #     fir = "first time"
-    if dic['pat'] == 'Learn meaning':
-        return render_template('recite/recite_meaning.html',
-                               t_username=session.get('username'),
-                               t_en=en,
-                               t_zh=zh,
-                               # t_num=dic['num'],
-                               # t_rem=dic['tong'][dic['en'][dic['show']]],
-                               # t_fir=fir,
-                               t_pat=dic['pat'],
-                               t_sm=res['sm'],
-                               t_sen=sen,
-                               t_theme=get_theme(),
-                               t_listname=res['listname'])
-    else:
-        return render_template('recite/recite_spelling.html',
-                               t_username=session.get('username'),
-                               t_en=en,
-                               t_zh=zh,
-                               # t_num=dic['num'],
-                               # t_rem=dic['tong'][dic['en'][dic['show']]],
-                               # t_fir=fir,
-                               t_pat=dic['pat'],
-                               t_sm=res['sm'],
-                               t_sen=sen,
-                               t_theme=get_theme(),
-                               t_listname=res['listname'])
+    list_id = request.args.get('id')
+    pattern = request.args.get('pattern')
+    res, words = load_list_words(list_id)
+    if res is None:
+        abort(404)
+    bootstrap = srs.session_bootstrap(session['username'], list_id, words)
+    ctx = {
+        't_username': session.get('username'),
+        't_pat': pattern,
+        't_sm': res['sm'],
+        't_theme': get_theme(),
+        't_listname': res['listname'],
+        't_list_id': list_id,
+        't_card': bootstrap['card'],
+        't_stats': bootstrap['stats'],
+    }
+    if pattern == 'Learn meaning':
+        return render_template('recite/recite_meaning.html', **ctx)
+    return render_template('recite/recite_spelling.html', **ctx)
 
+
+@recite_app.route('/recite/rate', methods=['POST']) # 评分并取下一张
+def recite_rate():
+    if session.get('username') == None:
+        return jsonify({'error': 'login required'}), 401
+    data = request.get_json(silent=True) or {}
+    list_id = data.get('list_id') or request.form.get('list_id')
+    word = data.get('word') or request.form.get('word')
+    rating = data.get('rating') or request.form.get('rating')
+    if rating not in ('know', 'dont'):
+        return jsonify({'error': 'invalid rating'}), 400
+    res, words = load_list_words(list_id)
+    if res is None:
+        return jsonify({'error': 'list not found'}), 404
+    word_set = {item['word'] for item in words}
+    if word not in word_set:
+        return jsonify({'error': 'word not in list'}), 400
+    progress, daily = srs.rate_word(session['username'], list_id, words, word, rating)
+    choice = srs.choose_word(words, progress, daily, current_word=word)
+    stats = srs.list_statistics(words, progress, daily)
+    return jsonify({
+        'card': srs.card_payload(choice),
+        'stats': stats,
+        'finished': stats['finished'],
+    })
+
+
+@recite_app.route('/recite/restart_today', methods=['POST']) # 今天重学整张
+def recite_restart_today():
+    if session.get('username') == None:
+        return redirect('/login')
+    list_id = request.form.get('id')
+    res, words = load_list_words(list_id)
+    if res is None:
+        abort(404)
+    srs.restart_today(session['username'], list_id, words)
+    return redirect('/show_list?id=' + list_id)
+
+
+@recite_app.route('/recite/review_wrong', methods=['POST']) # 只复习错词
+def recite_review_wrong():
+    if session.get('username') == None:
+        return redirect('/login')
+    list_id = request.form.get('id')
+    res, words = load_list_words(list_id)
+    if res is None:
+        abort(404)
+    _progress, daily = srs.review_wrong(session['username'], list_id, words)
+    if daily is None:
+        return redirect('/show_list?id=' + list_id + '&msg=no_wrong')
+    return redirect('/show_list?id=' + list_id)
 # @recite_app.route('/check_recite', methods=['GET']) # 检查背诵信息
 # def check_recite():
 #     if session.get('username') == None:
@@ -483,7 +531,6 @@ def recite():
 @recite_app.route('/show_list', methods=['GET']) # 展示表格
 def show_list():
     id = request.args.get('id')
-    # wordlist = db.lists.find_one({'id': id})
     wordlist = dbConnecter.read_data('lists', 'id', id)[0]
     wordlist['en'] = toList(wordlist['en'])
     wordlist['zh'] = toList(wordlist['zh'])
@@ -491,15 +538,24 @@ def show_list():
         wordlist['sen'] = toList(wordlist['sen'])
     if session.get('username') == None:
         admin = False
+        stats = None
     else:
-        # admin = db.users.find_one({'username': session['username']})['admin']
         admin = dbConnecter.read_data('users', 'username', session['username'])[0]['admin']
+        words = srs.parse_list_words(
+            wordlist['en'], wordlist['zh'],
+            wordlist['sen'] if wordlist['sm'] else [],
+            wordlist['sm'],
+        )
+        progress, daily = srs.ensure_today_task(session['username'], id, words)
+        stats = srs.list_statistics(words, progress, daily)
     return render_template('recite/show_list.html',
                            t_username=session.get('username'),
                            t_wordlist=wordlist,
                            t_size=len(wordlist['en']),
                            t_sm=wordlist['sm'],
                            t_admin=admin,
+                           t_stats=stats,
+                           t_msg=request.args.get('msg'),
                            t_theme=get_theme())
 
 @recite_app.route('/check_del_list', methods=['GET'])
@@ -525,16 +581,9 @@ def del_list():
     # dic = db.lists.find_one({'id': id})
     dic = dbConnecter.read_data('lists', 'id', id)[0]
     if dic['username'] == session['username'] or userdic['admin']:
-        # db.lists.delete_one({'id': id})
         dbConnecter.delete_data('lists', 'id', id)
-        # dics = list(db.users.find())
-        # for i in dics:
-        #     for j in range(0, len(i['list_record'])):
-        #         if i['list_record'][j]['id'] == id:
-        #             del i['list_record'][j]
-        #             break
-        #     db.users.update({'username': i['username']}, i)
-        return redirect('/lists')
+        srs_store.delete_list_progress(id)
+        return redirect('/reciter')
     else:
         return 'No permission'
 
@@ -652,4 +701,4 @@ def modifier():
                             '(id, username, listname, difficulty, en, zh, timef, o, sen, sm)',
                             (id, dic['username'], dic['listname'], dic['difficulty'], dic['en'], dic['zh'], dic['timef'], dic['o'], dic['sen'], dic['sm'])
                             )
-    return redirect('/lists')
+    return redirect('/reciter')

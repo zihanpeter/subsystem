@@ -10,9 +10,9 @@
     <section class="stage">
         <div class="stage__stats">
             <span class="chip chip--accent">{{ t_pat }}</span>
-            <span class="chip">Remaining <span class="chip__num" id="remain"></span></span>
-            <span class="chip">Repeats left <span class="chip__num" id="wordcnt"></span></span>
-            <span class="chip chip--success" id="first"></span>
+            <span class="chip">Today <span class="chip__num" id="done">0</span>/<span class="chip__num" id="target">0</span></span>
+            <span class="chip">Retry <span class="chip__num" id="retry">0</span></span>
+            <span class="chip">Left <span class="chip__num" id="remain">0</span></span>
         </div>
 
         <h1 class="stage__word" id="word"></h1>
@@ -20,7 +20,7 @@
         <p class="stage__sen" id="sen"></p>
         <p class="stage__guide" id="guide"></p>
 
-        <div class="stage__controls">
+        <div class="stage__controls" id="controls">
             <button class="btn" id="know" type="button" onclick="checkKnow();">
                 Know <span class="keys"><span class="kbd">A</span><span class="kbd">&larr;</span></span>
             </button>
@@ -32,17 +32,17 @@
             </button>
         </div>
 
-        <a class="btn btn--soft stage__finish" href="/reciter" id="finish"></a>
+        <a class="btn btn--soft stage__finish" href="/show_list?id={{ t_list_id }}" id="finish"></a>
     </section>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    let en = {{ t_en | tojson }};
-    let zh = {{ t_zh | tojson }};
+    let listId = {{ t_list_id | tojson }};
     let sm = {{ t_sm | tojson }};
-    let sen = {{ t_sen | tojson }};
+    let initialCard = {{ t_card | tojson }};
+    let initialStats = {{ t_stats | tojson }};
 </script>
 <script src="{{ url_for('static', filename='javascript/reciter/recite_meaning.js') }}" defer></script>
 {% endblock %}

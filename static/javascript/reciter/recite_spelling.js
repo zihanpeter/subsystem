@@ -1,68 +1,112 @@
-let cnt = Array(en.length).fill(2), firstime = Array(en.length).fill(true);
-let idx = 0, flag = false, input;
+let card = null;
+let awaitingContinue = false;
+let busy = false;
+let lastInput = '';
+let pendingCard = null;
+let pendingStats = null;
 
-function deleteWord(id) {
-    en.splice(id, 1);
-    zh.splice(id, 1);
-    cnt.splice(id, 1);
-    firstime.splice(id, 1);
-    if (sm) sen.splice(id, 1)
+function setStats(stats) {
+    if (!stats) return;
+    document.getElementById('done').innerText = stats.done;
+    document.getElementById('target').innerText = stats.target;
+    document.getElementById('retry').innerText = stats.retry;
+    document.getElementById('remain').innerText = stats.remaining;
 }
 
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function showWord() {
-
-    idx = getRandomInt(0, en.length);
-    document.getElementById('word').innerText = zh[idx];
-    if (firstime[idx]) document.getElementById('first').innerText = 'first time';
-    else document.getElementById('first').innerText = '';
-    document.getElementById('remain').innerText = en.length;
-    document.getElementById('wordcnt').innerText = cnt[idx];
+function showFinished() {
+    card = null;
+    awaitingContinue = false;
+    document.getElementById('word').innerText = 'Today finished';
+    document.getElementById('tip').innerText = '';
+    document.getElementById('sen').innerText = '';
     document.getElementById('user_ans').innerText = '';
+    document.getElementById('input').disabled = true;
+    document.getElementById('submit').disabled = true;
+    document.getElementById('finish').innerText = 'Back to wordlist';
 }
 
-function showTip() {
+function showCard(nextCard, stats) {
+    setStats(stats);
+    if (!nextCard || (stats && stats.finished)) {
+        showFinished();
+        return;
+    }
+    card = nextCard;
+    awaitingContinue = false;
+    lastInput = '';
+    pendingCard = null;
+    pendingStats = null;
+    document.getElementById('word').innerText = card.meaning;
+    document.getElementById('tip').innerText = '';
+    document.getElementById('sen').innerText = '';
+    document.getElementById('user_ans').innerText = '';
+    document.getElementById('input').disabled = false;
+    document.getElementById('submit').disabled = false;
+    document.getElementById('input').value = '';
+    document.getElementById('finish').innerText = '';
+    document.getElementById('input').focus();
+}
 
-    flag = true;
-    document.getElementById('tip').innerText = en[idx];
-    document.getElementById('wordcnt').innerText = cnt[idx];
-    document.getElementById('user_ans').innerText = input;
-    if (sm) document.getElementById('sen').innerText = sen[idx];
+function showMistake() {
+    awaitingContinue = true;
+    document.getElementById('tip').innerText = card.word;
+    document.getElementById('user_ans').innerText = lastInput;
+    if (sm && card.example) {
+        document.getElementById('sen').innerText = card.example;
+    }
+    document.getElementById('input').value = '';
 }
 
 function checkInput() {
-    input = document.getElementById('input').value;
-    if (flag) {
-        document.getElementById('tip').innerText = '';
-        document.getElementById('sen').innerText = '';
-        document.getElementById('input').value = '';
-        showWord();
-        flag = false;
-    } else {
-        if (input === en[idx]) {
-            cnt[idx]--;
-            if (firstime[idx] || cnt[idx] === 0) {
-                deleteWord(idx);
-            }
-            if (en.length === 0) {
-                document.getElementById('input').disabled = true;
-                document.getElementById('submit').disabled = true;
-                document.getElementById('finish').innerText = 'Finished';
-            } else {
-                document.getElementById('input').value = '';
-                showWord();
-            }
-        } else {
-            firstime[idx] = false;
-            cnt[idx] = 2;
-            document.getElementById('input').value = '';
-            showTip();
-        }
+    if (!card || busy) return;
+
+    // After a mistake: Enter advances to the next card already returned by rate
+    if (awaitingContinue) {
+        showCard(pendingCard, pendingStats);
+        return;
     }
+
+    lastInput = document.getElementById('input').value;
+    if (lastInput === card.word) {
+        busy = true;
+        fetch('/recite/rate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({list_id: listId, word: card.word, rating: 'know'}),
+            credentials: 'same-origin',
+        }).then(function (res) {
+            if (!res.ok) throw new Error('rate failed');
+            return res.json();
+        }).then(function (data) {
+            showCard(data.card, data.stats);
+        }).finally(function () {
+            busy = false;
+        });
+        return;
+    }
+
+    // Wrong: save as dont, show tip, wait for second Enter
+    busy = true;
+    fetch('/recite/rate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({list_id: listId, word: card.word, rating: 'dont'}),
+        credentials: 'same-origin',
+    }).then(function (res) {
+        if (!res.ok) throw new Error('rate failed');
+        return res.json();
+    }).then(function (data) {
+        pendingCard = data.card;
+        pendingStats = data.stats;
+        setStats(data.stats);
+        showMistake();
+    }).catch(function () {
+        showMistake();
+    }).finally(function () {
+        busy = false;
+    });
 }
 
-
-window.onload = showWord;
+window.onload = function () {
+    showCard(initialCard, initialStats);
+};

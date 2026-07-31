@@ -28,13 +28,42 @@
             <div class="row">
                 <span class="chip chip--accent">Difficulty {{ t_wordlist['difficulty'] }}</span>
                 <span class="chip">ID <code>{{ t_wordlist['id'] }}</code></span>
+                {% if t_stats %}
+                <span class="chip">Today {{ t_stats.done }}/{{ t_stats.target }}</span>
+                <span class="chip">Retry {{ t_stats.retry }}</span>
+                <span class="chip chip--success">Mastered {{ t_stats.mastered }}/{{ t_stats.total }}</span>
+                {% if t_stats.finished %}
+                <span class="chip chip--success">Today done</span>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
+
+        {% if t_msg == 'no_wrong' %}
+        <p class="callout">No wrong words yet in this list.</p>
+        {% endif %}
+
+        {% if current_user %}
         <form class="form__actions" action="/recite" method="get">
             <input type="hidden" name="id" value="{{ t_wordlist['id'] }}">
             <button class="btn" type="submit" name="pattern" value="Learn meaning">Learn meaning</button>
             <button class="btn btn--soft" type="submit" name="pattern" value="Learn spelling">Learn spelling</button>
         </form>
+        <div class="form__actions" style="margin-top: 12px;">
+            <form action="/recite/restart_today" method="post">
+                <input type="hidden" name="id" value="{{ t_wordlist['id'] }}">
+                <button class="btn btn--ghost" type="submit">Restart whole list today</button>
+            </form>
+            <form action="/recite/review_wrong" method="post">
+                <input type="hidden" name="id" value="{{ t_wordlist['id'] }}">
+                <button class="btn btn--ghost" type="submit">Review wrong words</button>
+            </form>
+        </div>
+        {% else %}
+        <p class="text-muted">
+            <a href="/login">Log in</a> to start today's review with spaced repetition.
+        </p>
+        {% endif %}
     </section>
 
     <div class="table-wrap">
