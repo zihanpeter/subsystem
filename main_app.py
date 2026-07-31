@@ -30,7 +30,7 @@ def inject_layout_context(): # 布局(导航栏/主题)所需的全局变量
 
 @app.route('/favicon.ico') # 浏览器默认会请求根路径图标
 def favicon():
-    return send_from_directory('static/images', 'favicon.ico',
+    return send_from_directory('static/images', 'site-icon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
