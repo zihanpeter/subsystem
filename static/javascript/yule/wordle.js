@@ -332,31 +332,6 @@ function hideHelp() {
 document.getElementById('helpButton').addEventListener('click', showHelp);
 document.getElementById('helpModal').addEventListener('click', hideHelp);
 
-// 添加主题切换功能
-let currentTheme = 'light';
-
-function setTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    
-    // 更新按钮状态
-    document.querySelectorAll('.theme-button').forEach(button => {
-        button.classList.toggle('active', button.dataset.theme === theme);
-    });
-}
-
-// 初始化主题
-const savedTheme = localStorage.getItem('theme') || 'light';
-setTheme(savedTheme);
-
-// 添加主题切换事件监听器
-document.querySelectorAll('.theme-button').forEach(button => {
-    button.addEventListener('click', () => {
-        setTheme(button.dataset.theme);
-    });
-});
-
 // 添加单词有效性检查函数
 function isValidWord(word) {
     // 检查是否在当前长度的词典中

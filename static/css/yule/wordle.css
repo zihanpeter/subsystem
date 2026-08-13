@@ -243,27 +243,6 @@ body {
     max-width: 80px;
 }
 
-.theme-toggle {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.theme-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    background: var(--button-color);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    flex: 1;
-}
-
-.theme-button.active {
-    background: #4CAF50;
-}
-
 /* 添加主题相关的CSS变量 */
 :root {
     --background-color: #ffffff;
@@ -279,17 +258,19 @@ body {
 }
 
 /* 暗色主题 */
-[data-theme="dark"] {
-    --background-color: #121213;
-    --text-color: #ffffff;
-    --button-color: #3b3b3c;
-    --keyboard-color: #818384;
-    --border-color: #3a3a3c;
-    --letter-box-bg: #121213;
-    --modal-bg: #121213;
-    --correct-color: #538d4e;
-    --present-color: #b59f3b;
-    --absent-color: #565758;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #121213;
+        --text-color: #ffffff;
+        --button-color: #3b3b3c;
+        --keyboard-color: #818384;
+        --border-color: #3a3a3c;
+        --letter-box-bg: #121213;
+        --modal-bg: #121213;
+        --correct-color: #538d4e;
+        --present-color: #b59f3b;
+        --absent-color: #565758;
+    }
 }
 
 /* 更新现有元素以使用CSS变量 */

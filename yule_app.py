@@ -30,11 +30,6 @@ yule_app.secret_key = get_config('SECRET_KEY')
     );
 '''
 
-def get_theme():
-    theme = session.get('theme')
-    if theme == None:
-        theme = 'white'
-    return theme
 
 @yule_app.route('/yule')
 def yule():
@@ -44,7 +39,6 @@ def yule():
     dics.sort(key=lambda x: x['hot'], reverse=True)
     return render_template('yule/yule.html',
                            t_dics=dics,
-                           t_theme=get_theme(),
                            t_username=session.get('username'))
 
 @yule_app.route('/intro', methods=['GET'])
@@ -65,7 +59,6 @@ def intro():
                            t_name=dic['name'],
                            t_intro=content,
                            t_username=session.get('username'),
-                           t_theme=get_theme(),
                            t_timef=dic['timef'],
                            t_creator=dic['creator'],
                            t_hot=dic['hot'])

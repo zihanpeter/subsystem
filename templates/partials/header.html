@@ -5,7 +5,6 @@
     ('yule', '/yule', 'Yule'),
     ('users', '/userlist', 'Users')
 ] %}
-{% set theme_next = request.full_path.rstrip('?') if request.method == 'GET' else '/' %}
 <header class="site-header{% if header_floating %} site-header--floating{% endif %}">
     <div class="site-header__inner">
         <a class="brand" href="/">
@@ -27,27 +26,6 @@
             </nav>
 
             <div class="site-header__actions">
-                <form class="theme-form" action="/change_theme" method="post">
-                    <input type="hidden" name="theme" value="{{ 'white' if t_theme == 'black' else 'black' }}">
-                    <input type="hidden" name="next" value="{{ theme_next }}">
-                    <button class="icon-btn" type="submit"
-                            title="{{ 'Switch to light theme' if t_theme == 'black' else 'Switch to dark theme' }}">
-                        {% if t_theme == 'black' %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                             stroke-linecap="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="4.2"></circle>
-                            <path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"></path>
-                        </svg>
-                        {% else %}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"></path>
-                        </svg>
-                        {% endif %}
-                        <span class="visually-hidden">Switch theme</span>
-                    </button>
-                </form>
-
                 {% if current_user %}
                 <a class="btn btn--ghost btn--sm" href="/login">Switch</a>
                 <a class="user-chip" href="/profile?username={{ current_user }}">

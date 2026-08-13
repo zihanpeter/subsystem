@@ -31,18 +31,12 @@ user_app.secret_key = get_config('SECRET_KEY')
     );
 '''
 
-def get_theme():
-    theme = session.get('theme')
-    if theme == None:
-        theme = 'white'
-    return theme
 
 @user_app.route('/login') # 提供登录页面
 def login():
     captcha_text, captcha_image = defender.generate_captcha()
     session['captcha'] = captcha_text.lower()
     return render_template('user/login.html',
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image)
 
 @user_app.route('/check_login', methods=['POST']) # 检查登录信息
@@ -53,7 +47,6 @@ def check_login():
         session['captcha'] = captcha_text.lower()
         return render_template('user/login.html',
                                t_error='Wrong graph validate code',
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
     username = request.form['username']
     password = request.form['password']
@@ -64,11 +57,9 @@ def check_login():
         session['captcha'] = captcha_text.lower()
         return render_template('user/login.html',
                                t_error='Wrong username or password.',
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
     else:
         session['username'] = username
-        session['theme'] = res[0]['theme']
         return redirect('/')
 
 @user_app.route('/register') # 提供注册页面
@@ -76,7 +67,6 @@ def register():
     captcha_text, captcha_image = defender.generate_captcha()
     session['captcha'] = captcha_text.lower()
     return render_template('user/register.html',
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image)
 
 @user_app.route('/check_register', methods=['POST']) # 处理注册信息
@@ -87,7 +77,6 @@ def check_register():
         session['captcha'] = captcha_text.lower()
         return render_template('user/register.html',
                                t_error='Wrong graph validate code',
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
     username = request.form['username']
     password = request.form['password']
@@ -106,14 +95,12 @@ def check_register():
                 session['captcha'] = captcha_text.lower()
                 return render_template('user/register.html',
                                        t_error='The username is not allowed.',
-                                       t_theme=get_theme(),
                                        t_captcha_image=captcha_image)
         if password2 != password:
             captcha_text, captcha_image = defender.generate_captcha()
             session['captcha'] = captcha_text.lower()
             return render_template('user/register.html',
                                    t_error='Two passwords are different.',
-                                   t_theme=get_theme(),
                                    t_captcha_image=captcha_image)
         dbConnecter.insert_data('users', '(username, password, timef, intro, theme, admin)', (username, password, now_temp, 'Nothing', 'white', False))
         # db.users.insert_one({'username': username,
@@ -124,14 +111,12 @@ def check_register():
         #                      'theme': 'white',
         #                      'admin': False})
         session['username'] = username
-        session['theme'] = 'white'
         return redirect('/')
     else:
         captcha_text, captcha_image = defender.generate_captcha()
         session['captcha'] = captcha_text.lower()
         return render_template('user/register.html',
                                t_error='The username is already exist.',
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
 
 @user_app.route('/profile') # 提供用户信息页面
@@ -166,7 +151,6 @@ def profile():
                            # t_articleslist=articleslist,
                            t_intro=intro,
                            t_admin=admin,
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image)
 
 @user_app.route('/change_password', methods=['POST']) # 处理更改密码信息
@@ -177,7 +161,6 @@ def change_password():
         session['captcha'] = captcha_text.lower()
         return render_template('user/profile.html',
                                t_error='Wrong graph validate code',
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
     resOld = request.form['old']
     resNew = request.form['new']
@@ -186,8 +169,7 @@ def change_password():
     userdic = dbConnecter.read_data('users', 'username', session['username'])[0]
     if resNew != new2:
         return render_template('user/profile.html',
-                               t_error='Two passwords are different.',
-                               t_theme=get_theme())
+                               t_error='Two passwords are different.')
     if resOld == userdic['password']:
         # userdic['password'] = resNew
         # db.users.update({'username': session['username']}, userdic)
@@ -195,25 +177,8 @@ def change_password():
         return redirect('/')
     else:
         return render_template('user/profile.html',
-                               t_error='Your original password is wrong',
-                               t_theme=get_theme())
+                               t_error='Your original password is wrong')
 
-@user_app.route('/change_theme', methods=['POST']) # 更改颜色主题
-def change_theme():
-    theme = request.form.get('theme')
-    if theme not in ('white', 'black'):
-        theme = 'white'
-    session['theme'] = theme
-    username = session.get('username')
-    if username != None: # 未登录用户只在会话中记住主题
-        dbConnecter.update_data('users', 'username', username, 'theme', theme)
-    # 主题按钮在每个页面上都有，因此回到发起请求的页面
-    nxt = request.form.get('next')
-    if nxt != None and nxt.startswith('/') and not nxt.startswith('//'):
-        return redirect(nxt)
-    if username != None:
-        return redirect('/profile?username=' + username)
-    return redirect('/')
 
 @user_app.route('/userlist')
 def userlist():
@@ -222,8 +187,7 @@ def userlist():
     dics.sort(key = lambda x: x['timef'])
     return render_template('user/userlist.html',
                            t_username=session.get('username'),
-                           t_dics=dics,
-                           t_theme=get_theme())
+                           t_dics=dics)
 
 @user_app.route('/modify_intro', methods=['GET']) # 提供修改用户简介页面
 def modify_intro():
@@ -239,7 +203,6 @@ def modify_intro():
         return render_template('user/modify_intro.html',
                                t_info=dic['intro'],
                                t_username=username,
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image)
     else:
         return 'No permission'
@@ -285,7 +248,6 @@ def modifier_intro():
         return render_template('user/modify_intro.html',
                                t_info=dic['intro'],
                                t_username=username,
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image,
                                t_error='Wrong graph validate code')
     intro = attack_cleaner(request.form.get('intro'))

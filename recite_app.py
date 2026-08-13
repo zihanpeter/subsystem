@@ -65,11 +65,6 @@ recite_app.secret_key = get_config('SECRET_KEY')
     );
 '''
 
-def get_theme():
-    theme = session.get('theme')
-    if theme == None:
-        theme = 'white'
-    return theme
 
 def toList(str):
     l = []
@@ -165,7 +160,6 @@ def reciter():
                            t_username=username, 
                            t_lists_o=lists_o, 
                            t_lists_u=lists_u,
-                           t_theme=get_theme(),
                            t_show_mode=show_mode)
 
 @recite_app.route('/create') # 提供创建词汇表的页面
@@ -179,7 +173,6 @@ def create():
     return render_template('recite/create.html',
                            t_username=session.get('username'),
                            t_admin=userdic['admin'],
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image)
 
 @recite_app.route('/check_create', methods=['POST']) # 处理提供的创建信息
@@ -195,7 +188,6 @@ def check_create():
         return render_template('recite/create.html',
                            t_username=session.get('username'),
                            t_admin=userdic['admin'],
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image,
                             t_error='Wrong graph validate code')
     wordlist = request.form['wordlist']
@@ -318,7 +310,6 @@ def recite():
         't_username': session.get('username'),
         't_pat': pattern,
         't_sm': res['sm'],
-        't_theme': get_theme(),
         't_listname': res['listname'],
         't_list_id': list_id,
         't_card': bootstrap['card'],
@@ -436,8 +427,7 @@ def recite_review_wrong():
 #         db.users.update({'username': session['username']}, userdic)
 #         return render_template('recite/finish.html',
 #                                t_username=session['username'],
-#                                t_theme=get_theme(),
-#                                t_listname=dic['listname'])
+#                                #                                t_listname=dic['listname'])
 #     dic['show'] = random.randint(0, dic['num'] - 1)
 #     db.temp.update({'username': session['username']}, dic)
 #     if flag:
@@ -456,8 +446,7 @@ def recite_review_wrong():
 #                                    t_fir=fir,
 #                                    t_sm=dic['sm'],
 #                                    t_sen=sen,
-#                                    t_theme=get_theme(),
-#                                    t_listname=dic['listname'])
+#                                    #                                    t_listname=dic['listname'])
 #         else:
 #             return render_template('recite/tip_meaning.html',
 #                                    t_username=session['username'],
@@ -470,8 +459,7 @@ def recite_review_wrong():
 #                                    t_fir=fir,
 #                                    t_sm=dic['sm'],
 #                                    t_sen=sen,
-#                                    t_theme=get_theme(),
-#                                    t_listname=dic['listname'])
+#                                    #                                    t_listname=dic['listname'])
 #     return redirect('/recite')
 
 # @recite_app.route('/show_tip')
@@ -499,8 +487,7 @@ def recite_review_wrong():
 #                                t_fir=fir,
 #                                t_sm=dic['sm'],
 #                                t_sen=sen,
-#                                t_theme=get_theme(),
-#                                t_listname=dic['listname'])
+#                                #                                t_listname=dic['listname'])
 #     else:
 #         return render_template('recite/tip_meaning.html',
 #                                t_username=session['username'],
@@ -512,8 +499,7 @@ def recite_review_wrong():
 #                                t_fir=fir,
 #                                t_sm=dic['sm'],
 #                                t_sen=sen,
-#                                t_theme=get_theme(),
-#                                t_listname=dic['listname'])
+#                                #                                t_listname=dic['listname'])
 
 # @recite_app.route('/mod_list', methods=['POST'])
 # def mod_list():
@@ -555,8 +541,7 @@ def show_list():
                            t_sm=wordlist['sm'],
                            t_admin=admin,
                            t_stats=stats,
-                           t_msg=request.args.get('msg'),
-                           t_theme=get_theme())
+                           t_msg=request.args.get('msg'))
 
 @recite_app.route('/check_del_list', methods=['GET'])
 def check_del_list():
@@ -566,7 +551,6 @@ def check_del_list():
     return render_template('recite/check_del_list.html',
                            t_id=id,
                            t_username=session.get('username'),
-                           t_theme=get_theme(),
                            # t_listname=db.lists.find_one({'id': id})['listname']
                            t_listname=dbConnecter.read_data('lists', 'id', id)[0]['listname']
                            )
@@ -618,7 +602,6 @@ def modify_list():
                                t_admin=userdic['admin'],
                                t_listname=dic['listname'],
                                t_username=session['username'],
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image,
                                t_error=errorr)
     else:

@@ -20,7 +20,7 @@ In the meantime, you can change your password or edit your profile here
 Please use the [Markdown](https://help.luogu.com.cn/rules/academic/handbook/markdown), 
 [KaTeX](https://katex.org/docs/supported.html) To edit your profile
 
-You can switch theme colors from the moon / sun button in the top bar (works on every page). Logged-in users also keep the choice on their profile.
+The site follows your browser or system light / dark appearance automatically.
 
 ## Admin team
 To maintain order in the community, we set up a team of custodians
@@ -96,7 +96,7 @@ banana
 On a list page, start with **Learn meaning** (English → Chinese) or **Learn spelling** (Chinese → type English). Both modes share the same progress for each word.
 
 #### Today's queue
-The first time you open a list on a calendar day, Reciter builds a **today queue** from words whose next review date is today or earlier. That queue stays fixed for the rest of the day.
+The first time you open a list on a study day, Reciter builds a **today queue** from words whose next review date is today or earlier. That queue stays fixed until **04:00** the next morning (not midnight).
 
 Status chips mean:
 

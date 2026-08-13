@@ -44,11 +44,6 @@ forum_app.secret_key = get_config('SECRET_KEY')
     );    
 '''
 
-def get_theme():
-    theme = session.get('theme')
-    if theme == None:
-        theme = 'white'
-    return theme
 
 @forum_app.route('/forum', methods=['GET']) # 展示讨论列表
 def forum():
@@ -77,7 +72,6 @@ def forum():
                            t_username=session.get('username'),
                            t_list_top=list_top,
                            t_list_cmn=list_cmn,
-                           t_theme=get_theme(),
                            t_show_mode=show_mode)
 
 @forum_app.route('/create_articles', methods=['GET']) # 展示创建页面
@@ -91,7 +85,6 @@ def create_articles():
     return render_template('forum/create_articles.html',
                            t_username=session.get('username'),
                            t_admin=userdic['admin'],
-                           t_theme=get_theme(),
                            t_captcha_image=captcha_image)
 
 # 定义一个函数，用于提取Markdown中的代码块
@@ -136,7 +129,6 @@ def check_disucss():
         return render_template('forum/create_articles.html',
                                t_username=session.get('username'),
                                t_admin=userdic['admin'],
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image,
                                t_error='Wrong graph validate code')
     title = request.form.get('title')
@@ -207,7 +199,6 @@ def articles():
                            t_size=sizet,
                            t_admin=admin,
                            t_sorter=sorter,
-                           t_theme=get_theme(),
                            t_content=content,
                            t_error=errorr,
                            t_captcha_image=captcha_image)
@@ -229,7 +220,6 @@ def check_del_articles():
     return render_template('forum/check_del_articles.html',
                            t_id=id,
                            t_username=session.get('username'),
-                           t_theme=get_theme(),
                            # t_title=db.articles.find_one({'id': id})['title']
                            t_title=dbConnecter.read_data('articles', 'id', id)[0]['title']
                            )
@@ -351,7 +341,6 @@ def modify_articles():
                                t_admin=admin,
                                t_id=iid,
                                t_username=session.get('username'),
-                               t_theme=get_theme(),
                                t_captcha_image=captcha_image,
                                t_error=errorr)
     else:

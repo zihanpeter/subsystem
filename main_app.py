@@ -17,16 +17,9 @@ app.register_blueprint(yule_app)
 # client = pymongo.MongoClient()
 # db = client.reciter
 
-def get_theme():
-    theme = session.get('theme')
-    if theme == None:
-        theme = 'white'
-    return theme
-
 @app.context_processor
-def inject_layout_context(): # 布局(导航栏/主题)所需的全局变量
-    return {'current_user': session.get('username'),
-            't_theme': get_theme()}
+def inject_layout_context(): # 布局(导航栏)所需的全局变量
+    return {'current_user': session.get('username')}
 
 @app.route('/favicon.ico') # 浏览器默认会请求根路径图标
 def favicon():
@@ -55,8 +48,7 @@ def main():
                                                      'markdown.extensions.tables'])
     return render_template('main/main.html',
                            t_content=content,
-                           t_username=username,
-                           t_theme=get_theme())
+                           t_username=username)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

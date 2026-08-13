@@ -1,10 +1,17 @@
 """Spaced-repetition session logic aligned with vocabulary_trainer_multilist."""
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from lib import srs_store
 
 LEVEL_INTERVALS = [0, 1, 2, 4, 7, 14, 30, 60]
+DAY_RESET_HOUR = 4
+
+
+def study_today(now=None):
+    """Study-day date. Rolls over at 04:00 local time instead of midnight."""
+    now = now or datetime.now()
+    return (now - timedelta(hours=DAY_RESET_HOUR)).date()
 
 
 def parse_list_words(en_list, zh_list, sen_list=None, sm=False):
@@ -23,7 +30,7 @@ def parse_list_words(en_list, zh_list, sen_list=None, sm=False):
 
 def ensure_today_task(username, list_id, words, today=None):
     """Ensure progress rows and a pinned daily target for today."""
-    today = today or date.today()
+    today = today or study_today()
     today_iso = today.isoformat()
     progress = srs_store.ensure_progress_rows(username, list_id, words, today_iso)
     daily = srs_store.fetch_daily(username, list_id, today_iso)
@@ -72,7 +79,7 @@ def choose_word(words, progress, daily, current_word=None):
     retry = set(daily.get('retry') or [])
     weights = []
     for item in pool:
-        record = progress.get(item['word']) or srs_store.default_record(date.today().isoformat())
+        record = progress.get(item['word']) or srs_store.default_record(study_today().isoformat())
         level = int(record.get('level', 0))
         wrong = int(record.get('wrong', 0))
         bonus = 6 if item['word'] in retry else 0
@@ -89,7 +96,7 @@ def choose_word(words, progress, daily, current_word=None):
 
 def apply_rating(record, daily, rating, today=None):
     """Mutate progress record and daily state for know/dont. Returns updated record."""
-    today = today or date.today()
+    today = today or study_today()
     word = record.get('_word')  # optional; caller passes word separately for daily
     level = int(record.get('level', 0))
     record['seen'] = int(record.get('seen', 0)) + 1
@@ -118,7 +125,7 @@ def apply_rating(record, daily, rating, today=None):
 
 
 def rate_word(username, list_id, words, word, rating, today=None):
-    today = today or date.today()
+    today = today or study_today()
     today_iso = today.isoformat()
     progress, daily = ensure_today_task(username, list_id, words, today)
     if word not in progress:
@@ -167,7 +174,7 @@ def card_payload(item, sm=False):
 
 
 def restart_today(username, list_id, words, today=None):
-    today = today or date.today()
+    today = today or study_today()
     today_iso = today.isoformat()
     progress = srs_store.ensure_progress_rows(username, list_id, words, today_iso)
     daily = {
@@ -180,7 +187,7 @@ def restart_today(username, list_id, words, today=None):
 
 
 def review_wrong(username, list_id, words, today=None):
-    today = today or date.today()
+    today = today or study_today()
     today_iso = today.isoformat()
     progress = srs_store.ensure_progress_rows(username, list_id, words, today_iso)
     wrong_words = [

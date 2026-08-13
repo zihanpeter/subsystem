@@ -40,23 +40,6 @@
     {% if is_owner %}
     <section class="card">
         <div class="card__head">
-            <h2 class="card__title">Appearance</h2>
-            <p class="card__hint">Also switchable from the moon icon in the header.</p>
-        </div>
-        <form class="form__row" action="/change_theme" method="post">
-            <div class="field">
-                <label class="field__label" for="theme-select">Color theme</label>
-                <select id="theme-select" name="theme">
-                    <option value="white" {% if t_theme != 'black' %}selected{% endif %}>Light</option>
-                    <option value="black" {% if t_theme == 'black' %}selected{% endif %}>Dark</option>
-                </select>
-            </div>
-            <button class="btn" type="submit">Save</button>
-        </form>
-    </section>
-
-    <section class="card">
-        <div class="card__head">
             <h2 class="card__title">Change your password</h2>
         </div>
         <form class="form" action="/change_password" method="post">
