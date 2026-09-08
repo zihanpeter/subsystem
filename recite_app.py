@@ -1,6 +1,7 @@
 from flask import render_template, request, session, redirect, Blueprint, abort, jsonify
 import uuid
 import time
+from urllib.parse import urlencode
 from lib import dbConnecter, defender, srs, srs_store
 from lib.config_loader import get_config
 
@@ -153,7 +154,41 @@ def reciter():
                            t_lists_o=lists_o, 
                            t_lists_u=lists_u,
                            t_lists_p=lists_p,
-                           t_show_mode=show_mode)
+                           t_show_mode=show_mode,
+                           t_done=request.args.get('done'))
+
+def reciter_url(show_mode, key, difficulty, done=None): # 批量操作后回到原来的栏目和筛选
+    query = {'show_mode': show_mode or 'official',
+             'key': key or '',
+             'difficulty': difficulty or 'all'}
+    if done != None:
+        query['done'] = done
+    return '/reciter?' + urlencode(query)
+
+@recite_app.route('/bulk_visibility', methods=['POST']) # 批量切换公开/私有
+def bulk_visibility():
+    if session.get('username') == None:
+        return redirect('/login')
+    show_mode = request.form.get('show_mode')
+    key = request.form.get('key')
+    difficulty = request.form.get('difficulty')
+    priv = request.form.get('priv') == 'y'
+    done = 0
+    for id in request.form.getlist('ids'):
+        dic = load_list(id)
+        if dic is None or dic['username'] != session['username']: # 只能改自己的表格
+            continue
+        if is_private(dic) == priv:
+            continue
+        dbConnecter.update_data('lists', 'id', id, 'priv', priv)
+        if priv: # 私有表格不进官方列表
+            dbConnecter.update_data('lists', 'id', id, 'o', False)
+        done += 1
+    if priv: # 跟着表格去它们现在所在的栏目
+        show_mode = 'private'
+    elif show_mode == 'private':
+        show_mode = 'users'
+    return redirect(reciter_url(show_mode, key, difficulty, done or None))
 
 @recite_app.route('/create') # 提供创建词汇表的页面
 def create():

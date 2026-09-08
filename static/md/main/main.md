@@ -7,7 +7,7 @@ The whole site now shares one design system: a common header and footer, light /
 Reciting is no longer a one-shot “drill each word twice” session. Progress is saved per account and per wordlist. Each day you get a fixed queue of due words; **Know** / **Don't know** (and spelling correct / wrong) update long-term review dates. See **Systems Intro → Reciter** below for details.
 
 ## Reciter: private wordlists
-A wordlist can now be **private**. Private lists live in their own **My private lists** section in Reciter and stay invisible to everyone else. Existing lists stay public, and you can switch any of your lists between public and private from its **Modify** page.
+A wordlist can now be **private**. Private lists live in their own **My private lists** section in Reciter and stay invisible to everyone else. Existing lists stay public, and you can switch your lists between public and private one by one on the **Modify** page, or several at a time with the checkboxes on the Reciter page.
 
 ## Branding
 Subsystem now uses a consistent site icon in the header and in the browser tab.
@@ -69,7 +69,7 @@ Click **Create a new wordlist**. Enter a name (up to $64$ characters), choose di
 
 You can later **Modify** or **Delete** lists you own (admins can manage other public lists when needed).
 
-**Visibility** decides who can see the list: **Public** puts it in the Users section, **Private** keeps it in your own section. You can switch an existing list between public and private at any time from its **Modify** page.
+**Visibility** decides who can see the list: **Public** puts it in the Users section, **Private** keeps it in your own section. You can switch an existing list between public and private at any time from its **Modify** page, or tick several of your lists on the Reciter page and use **Make private** / **Make public**.
 
 #### Without example sentences
 For $n$ words, enter $2n$ lines: English, Chinese, English, Chinese, …

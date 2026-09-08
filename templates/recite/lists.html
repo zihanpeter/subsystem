@@ -5,6 +5,9 @@
 
 {% block content %}
 {% set lists = t_lists_p if t_show_mode == 'private' else (t_lists_o if t_show_mode == 'official' else t_lists_u) %}
+{% set cur_key = request.args.get('key') or '' %}
+{% set cur_difficulty = request.args.get('difficulty') or 'all' %}
+{% set filters = {'key': cur_key, 'difficulty': cur_difficulty} | urlencode %}
 <div class="stack">
     <div class="page-head">
         <div>
@@ -41,11 +44,10 @@
                     <div class="field">
                         <label class="field__label" for="list-key">List name</label>
                         <input id="list-key" type="text" name="key" placeholder="Search by name" maxlength="64"
-                               value="{{ request.args.get('key') or '' }}">
+                               value="{{ cur_key }}">
                     </div>
                     <div class="field">
                         <label class="field__label" for="list-difficulty">Difficulty</label>
-                        {% set cur_difficulty = request.args.get('difficulty') or 'all' %}
                         <select id="list-difficulty" name="difficulty">
                             <option value="all" {% if cur_difficulty == 'all' %}selected{% endif %}>All</option>
                             {% for level in ['1', '2', '3', '4', '5'] %}
@@ -60,8 +62,6 @@
         </section>
     </div>
 
-    {% set filters = {'key': request.args.get('key') or '',
-                      'difficulty': request.args.get('difficulty') or 'all'} | urlencode %}
     <div class="row">
         <a class="btn btn--sm{% if t_show_mode != 'official' %} btn--ghost{% endif %}"
            href="/reciter?show_mode=official&{{ filters }}">Official</a>
@@ -74,40 +74,82 @@
     </div>
 
     {% if t_show_mode == 'private' %}
-    <p class="text-muted">Only you can open these lists. Change a list's visibility from its
-        <strong>Modify</strong> page.</p>
+    <p class="text-muted">Only you can open these lists.</p>
     {% endif %}
 
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th scope="col">List name</th>
-                    <th scope="col">Creator</th>
-                    <th scope="col">Difficulty</th>
-                    <th scope="col">Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for i in lists %}
-                <tr>
-                    <td><a href="/show_list?id={{ i['id'] }}">{{ i['listname'] }}</a></td>
-                    <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
-                    <td><span class="chip">Level {{ i['difficulty'] }}</span></td>
-                    <td class="num">{{ i['timef'] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% if not lists %}
-        <p class="table-empty">
-            {% if t_show_mode == 'private' %}
-            You have no private wordlist yet.
-            {% else %}
-            No wordlist matches this filter.
-            {% endif %}
-        </p>
+    {% if t_done %}
+    <p class="callout">Visibility updated for {{ t_done }} wordlist(s).</p>
+    {% endif %}
+
+    <form class="stack stack--tight" action="/bulk_visibility" method="post">
+        <input type="hidden" name="show_mode" value="{{ t_show_mode }}">
+        <input type="hidden" name="key" value="{{ cur_key }}">
+        <input type="hidden" name="difficulty" value="{{ cur_difficulty }}">
+
+        {% if current_user %}
+        <div class="row">
+            <span class="text-muted">Tick your own lists, then:</span>
+            <button class="btn btn--sm" type="submit" name="priv" value="y">Make private</button>
+            <button class="btn btn--sm btn--ghost" type="submit" name="priv" value="n">Make public</button>
+        </div>
         {% endif %}
-    </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        {% if current_user %}
+                        <th scope="col"><input type="checkbox" data-check-all aria-label="Select all"></th>
+                        {% endif %}
+                        <th scope="col">List name</th>
+                        <th scope="col">Creator</th>
+                        <th scope="col">Difficulty</th>
+                        <th scope="col">Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in lists %}
+                    <tr>
+                        {% if current_user %}
+                        <td>
+                            {% if i['username'] == current_user %}
+                            <input type="checkbox" name="ids" value="{{ i['id'] }}"
+                                   aria-label="Select {{ i['listname'] }}">
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td><a href="/show_list?id={{ i['id'] }}">{{ i['listname'] }}</a></td>
+                        <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
+                        <td><span class="chip">Level {{ i['difficulty'] }}</span></td>
+                        <td class="num">{{ i['timef'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not lists %}
+            <p class="table-empty">
+                {% if t_show_mode == 'private' %}
+                You have no private wordlist yet.
+                {% else %}
+                No wordlist matches this filter.
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        var all = document.querySelector('[data-check-all]');
+        if (!all) return;
+        all.addEventListener('change', function () {
+            document.querySelectorAll('input[name="ids"]').forEach(function (box) {
+                box.checked = all.checked;
+            });
+        });
+    })();
+</script>
 {% endblock %}
