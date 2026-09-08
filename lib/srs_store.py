@@ -23,6 +23,13 @@ def _run(sql, params=None, fetch=False, dictionary=False):
         connection.close()
 
 
+def ensure_lists_priv_column():
+    """Add lists.priv on databases created before private wordlists existed."""
+    rows = _run("SHOW COLUMNS FROM lists LIKE 'priv';", fetch=True) or []
+    if not rows:
+        _run('ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;')
+
+
 def default_record(today_iso):
     return {
         'level': 0,

@@ -4,7 +4,7 @@
 {% block title %}Reciter - Subsystem{% endblock %}
 
 {% block content %}
-{% set lists = t_lists_o if t_show_mode == 'official' else t_lists_u %}
+{% set lists = t_lists_p if t_show_mode == 'private' else (t_lists_o if t_show_mode == 'official' else t_lists_u) %}
 <div class="stack">
     <div class="page-head">
         <div>
@@ -40,31 +40,43 @@
                 <div class="form__row">
                     <div class="field">
                         <label class="field__label" for="list-key">List name</label>
-                        <input id="list-key" type="text" name="key" placeholder="Search by name" maxlength="64">
+                        <input id="list-key" type="text" name="key" placeholder="Search by name" maxlength="64"
+                               value="{{ request.args.get('key') or '' }}">
                     </div>
                     <div class="field">
                         <label class="field__label" for="list-difficulty">Difficulty</label>
+                        {% set cur_difficulty = request.args.get('difficulty') or 'all' %}
                         <select id="list-difficulty" name="difficulty">
-                            <option value="all">All</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
+                            <option value="all" {% if cur_difficulty == 'all' %}selected{% endif %}>All</option>
+                            {% for level in ['1', '2', '3', '4', '5'] %}
+                            <option value="{{ level }}" {% if cur_difficulty == level %}selected{% endif %}>{{ level }}</option>
+                            {% endfor %}
                         </select>
                     </div>
-                    <div class="field">
-                        <label class="field__label" for="list-source">Source</label>
-                        <select id="list-source" name="show_mode">
-                            <option value="official" {% if t_show_mode == 'official' %}selected{% endif %}>Official</option>
-                            <option value="users" {% if t_show_mode == 'users' %}selected{% endif %}>Users</option>
-                        </select>
-                    </div>
+                    <input type="hidden" name="show_mode" value="{{ t_show_mode }}">
                     <button class="btn btn--ghost" type="submit" name="mode" value="OK">Apply</button>
                 </div>
             </form>
         </section>
     </div>
+
+    {% set filters = {'key': request.args.get('key') or '',
+                      'difficulty': request.args.get('difficulty') or 'all'} | urlencode %}
+    <div class="row">
+        <a class="btn btn--sm{% if t_show_mode != 'official' %} btn--ghost{% endif %}"
+           href="/reciter?show_mode=official&{{ filters }}">Official</a>
+        <a class="btn btn--sm{% if t_show_mode != 'users' %} btn--ghost{% endif %}"
+           href="/reciter?show_mode=users&{{ filters }}">Users</a>
+        {% if current_user %}
+        <a class="btn btn--sm{% if t_show_mode != 'private' %} btn--ghost{% endif %}"
+           href="/reciter?show_mode=private&{{ filters }}">My private lists</a>
+        {% endif %}
+    </div>
+
+    {% if t_show_mode == 'private' %}
+    <p class="text-muted">Only you can open these lists. Change a list's visibility from its
+        <strong>Modify</strong> page.</p>
+    {% endif %}
 
     <div class="table-wrap">
         <table>
@@ -88,7 +100,13 @@
             </tbody>
         </table>
         {% if not lists %}
-        <p class="table-empty">No wordlist matches this filter.</p>
+        <p class="table-empty">
+            {% if t_show_mode == 'private' %}
+            You have no private wordlist yet.
+            {% else %}
+            No wordlist matches this filter.
+            {% endif %}
+        </p>
         {% endif %}
     </div>
 </div>

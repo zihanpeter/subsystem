@@ -6,6 +6,9 @@ The whole site now shares one design system: a common header and footer, light /
 ## Reciter: spaced repetition
 Reciting is no longer a one-shot “drill each word twice” session. Progress is saved per account and per wordlist. Each day you get a fixed queue of due words; **Know** / **Don't know** (and spelling correct / wrong) update long-term review dates. See **Systems Intro → Reciter** below for details.
 
+## Reciter: private wordlists
+A wordlist can now be **private**. Private lists live in their own **My private lists** section in Reciter and stay invisible to everyone else. Existing lists stay public, and you can switch any of your lists between public and private from its **Modify** page.
+
 ## Branding
 Subsystem now uses a consistent site icon in the header and in the browser tab.
 
@@ -55,14 +58,18 @@ Please use the
 Reciter is the vocabulary trainer: create wordlists, then review them with spaced repetition. Log in before you start — progress is stored for your account.
 
 ### 1. Browse and open a list
-Open **Reciter** in the top menu. You can filter by difficulty or search by list name. Official lists and user lists are shown separately.
+Open **Reciter** in the top menu. You can filter by difficulty or search by list name. Lists are grouped into three sections: **Official**, **Users**, and **My private lists**.
+
+**My private lists** only appears when you are logged in, and it holds the lists you marked as private. Nobody else can open, review, or search them.
 
 Open a list to see its words, today's progress chips, and the study buttons.
 
 ### 2. Create or edit a wordlist
 Click **Create a new wordlist**. Enter a name (up to $64$ characters), choose difficulty, paste the words, then submit.
 
-You can later **Modify** or **Delete** lists you own (admins can manage others when needed).
+You can later **Modify** or **Delete** lists you own (admins can manage other public lists when needed).
+
+**Visibility** decides who can see the list: **Public** puts it in the Users section, **Private** keeps it in your own section. You can switch an existing list between public and private at any time from its **Modify** page.
 
 #### Without example sentences
 For $n$ words, enter $2n$ lines: English, Chinese, English, Chinese, …

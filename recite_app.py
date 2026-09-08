@@ -25,6 +25,7 @@ recite_app.secret_key = get_config('SECRET_KEY')
     o 是否为官方
     sm 是否有例句
     sen 例句
+    priv 是否为私有(仅创建者可见)
     
     CREATE TABLE lists (
         id VARCHAR(128), 
@@ -36,8 +37,12 @@ recite_app.secret_key = get_config('SECRET_KEY')
         timef VARCHAR(64), 
         o BOOL, 
         sm BOOl, 
-        sen TEXT
+        sen TEXT,
+        priv BOOL NOT NULL DEFAULT 0
     );
+
+    -- 已有数据库升级时执行一次
+    ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;
 
     -- Spaced repetition progress (per user, list, English word)
     CREATE TABLE word_progress (
@@ -65,6 +70,11 @@ recite_app.secret_key = get_config('SECRET_KEY')
     );
 '''
 
+try: # 老数据库缺少 priv 列时补上, 否则修改表格会丢数据
+    srs_store.ensure_lists_priv_column()
+except Exception as err:
+    print('lists.priv migration skipped: %s' % err)
+
 
 def toList(str):
     l = []
@@ -84,6 +94,23 @@ def toStr(l):
         str += '|'
     return str
 
+def is_private(wordlist):
+    return bool(wordlist.get('priv'))
+
+def can_read_list(wordlist, username): # 私有表格只有创建者能看
+    return not is_private(wordlist) or wordlist['username'] == username
+
+def can_edit_list(wordlist, username, admin): # 管理员不介入别人的私有表格
+    if wordlist['username'] == username:
+        return True
+    return bool(admin) and not is_private(wordlist)
+
+def load_list(list_id):
+    rows = dbConnecter.read_data('lists', 'id', list_id)
+    if not rows:
+        return None
+    return rows[0]
+
 def load_list_words(list_id):
     """Load a lists row and return (row, words) or (None, None)."""
     rows = dbConnecter.read_data('lists', 'id', list_id)
@@ -101,65 +128,31 @@ def reciter():
     username = session.get('username')
     difficulty = request.args.get('difficulty')
     key = request.args.get('key')
-    list_o, list_u = [], []
-    if key == None or key == '':
-        if difficulty == 'all' or difficulty == None:
-            print(11111)
-            # lists_o = db.lists.find({'o': True})
-            lists_o = dbConnecter.read_data('lists', 'o', 1)
-            # lists_o = list(lists_o)
-            # lists_u = db.lists.find({'o': False})
-            lists_u = dbConnecter.read_data('lists', 'o', 0)
-            ls =  dbConnecter.read_data('lists')
-            # lists_u = list(lists_u)
+    rows = dbConnecter.read_data('lists') or []
+    if key != None and key != '':
+        rows = [i for i in rows if i['listname'] == key]
+    if difficulty != None and difficulty != '' and difficulty != 'all':
+        rows = [i for i in rows if str(i['difficulty']) == str(difficulty)]
+    lists_o, lists_u, lists_p = [], [], []
+    for i in rows:
+        if is_private(i): # 私有表格只进创建者自己的栏目
+            if username != None and i['username'] == username:
+                lists_p.append(i)
+        elif i['o']:
+            lists_o.append(i)
         else:
-            print(222222)
-            # lists_o = db.lists.find({'difficulty': difficulty, 'o': True})
-            list_oo = dbConnecter.read_data('lists', 'difficulty', difficulty)
-            for i in list_oo:
-                if i['o']:
-                    list_o.append(i)
-                else:
-                    list_u.append(i)
-            # lists_o = list(lists_o)
-            # lists_u = db.lists.find({'difficulty': difficulty, 'o': False})
-            # lists_u = list(lists_u)
-    else:
-        if difficulty == 'all':
-            print(3333333)
-            list_oo = dbConnecter.read_data('lists', 'listname', key)
-
-            for i in list_oo:
-                if i['o']:
-                    list_o.append(i)
-                else:
-                    list_u.append(i)
-            # lists_o = db.lists.find({'listname': key, 'o': True})
-            # lists_o = list(lists_o)
-            # lists_u = db.lists.find({'listname': key, 'o': False})
-            # lists_u = list(lists_u)
-        else:
-            print(44444444)
-            # lists_o = db.lists.find({'listname': key, 'difficulty': difficulty, 'o': True})
-            # lists_o = list(lists_o)
-            # lists_u = db.lists.find({'listname': key, 'difficulty': difficulty, 'o': False})
-            # lists_u = list(lists_u)
-            list_oo = dbConnecter.read_data('lists', 'listname', key)
-            for i in list_oo:
-                if i['difficulty'] == difficulty:
-                    if i['o']:
-                        list_o.append(i)
-                    else:
-                        list_u.append(i)
+            lists_u.append(i)
     lists_o.sort(key=lambda x: x['listname'])
     lists_u.sort(key=lambda x: x['timef'], reverse=True)
+    lists_p.sort(key=lambda x: x['timef'], reverse=True)
     show_mode = request.args.get('show_mode')
-    if show_mode == None:
+    if show_mode == None or (show_mode == 'private' and username == None):
         show_mode = 'official'
     return render_template('recite/lists.html', 
                            t_username=username, 
                            t_lists_o=lists_o, 
                            t_lists_u=lists_u,
+                           t_lists_p=lists_p,
                            t_show_mode=show_mode)
 
 @recite_app.route('/create') # 提供创建词汇表的页面
@@ -195,6 +188,7 @@ def check_create():
     difficulty = request.form.get('difficulty')
     sm = request.form.get('sm')
     o = request.form.get('o')
+    priv = request.form.get('priv') == 'y'
     en = []
     zh = []
     sen = []
@@ -241,7 +235,7 @@ def check_create():
     zhs = toStr(zh)
     print(ens)
     print(zhs)
-    if o == 'y':
+    if o == 'y' and not priv: # 私有表格不进官方列表
         o = True
     else:
         o = False
@@ -259,9 +253,11 @@ def check_create():
     #                     'sen': sen,
     #                     'sm': sm})
     dbConnecter.insert_data('lists',
-                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm)',
-                            (id, session.get('username'), listname, difficulty, ens, zhs, now_temp, o, sens, sm))
+                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm, priv)',
+                            (id, session.get('username'), listname, difficulty, ens, zhs, now_temp, o, sens, sm, priv))
     # print('111111111111--------------------')
+    if priv:
+        return redirect('/reciter?show_mode=private')
     return redirect('/reciter')
 
 # @recite_app.route('/prepare_recite', methods=['POST']) # 准备开始背诵
@@ -303,7 +299,7 @@ def recite():
     list_id = request.args.get('id')
     pattern = request.args.get('pattern')
     res, words = load_list_words(list_id)
-    if res is None:
+    if res is None or not can_read_list(res, session['username']):
         abort(404)
     bootstrap = srs.session_bootstrap(session['username'], list_id, words)
     ctx = {
@@ -331,7 +327,7 @@ def recite_rate():
     if rating not in ('know', 'dont'):
         return jsonify({'error': 'invalid rating'}), 400
     res, words = load_list_words(list_id)
-    if res is None:
+    if res is None or not can_read_list(res, session['username']):
         return jsonify({'error': 'list not found'}), 404
     word_set = {item['word'] for item in words}
     if word not in word_set:
@@ -352,7 +348,7 @@ def recite_restart_today():
         return redirect('/login')
     list_id = request.form.get('id')
     res, words = load_list_words(list_id)
-    if res is None:
+    if res is None or not can_read_list(res, session['username']):
         abort(404)
     srs.restart_today(session['username'], list_id, words)
     return redirect('/show_list?id=' + list_id)
@@ -364,7 +360,7 @@ def recite_review_wrong():
         return redirect('/login')
     list_id = request.form.get('id')
     res, words = load_list_words(list_id)
-    if res is None:
+    if res is None or not can_read_list(res, session['username']):
         abort(404)
     _progress, daily = srs.review_wrong(session['username'], list_id, words)
     if daily is None:
@@ -517,7 +513,9 @@ def recite_review_wrong():
 @recite_app.route('/show_list', methods=['GET']) # 展示表格
 def show_list():
     id = request.args.get('id')
-    wordlist = dbConnecter.read_data('lists', 'id', id)[0]
+    wordlist = load_list(id)
+    if wordlist is None or not can_read_list(wordlist, session.get('username')):
+        abort(404)
     wordlist['en'] = toList(wordlist['en'])
     wordlist['zh'] = toList(wordlist['zh'])
     if wordlist['sm']:
@@ -548,11 +546,14 @@ def check_del_list():
     if session.get('username') == None:
         return redirect('/login')
     id = request.args.get('id')
+    dic = load_list(id)
+    if dic is None or not can_read_list(dic, session['username']):
+        abort(404)
     return render_template('recite/check_del_list.html',
                            t_id=id,
                            t_username=session.get('username'),
                            # t_listname=db.lists.find_one({'id': id})['listname']
-                           t_listname=dbConnecter.read_data('lists', 'id', id)[0]['listname']
+                           t_listname=dic['listname']
                            )
 
 @recite_app.route('/del_list', methods=['GET']) # 删除表格
@@ -563,8 +564,10 @@ def del_list():
     # userdic = db.users.find_one({'username': session['username']})
     userdic = dbConnecter.read_data('users', 'username', session['username'])[0]
     # dic = db.lists.find_one({'id': id})
-    dic = dbConnecter.read_data('lists', 'id', id)[0]
-    if dic['username'] == session['username'] or userdic['admin']:
+    dic = load_list(id)
+    if dic is None:
+        abort(404)
+    if can_edit_list(dic, session['username'], userdic['admin']):
         dbConnecter.delete_data('lists', 'id', id)
         srs_store.delete_list_progress(id)
         return redirect('/reciter')
@@ -578,7 +581,9 @@ def modify_list():
     captcha_text, captcha_image = defender.generate_captcha()
     session['captcha'] = captcha_text.lower()
     id = request.args.get('id')
-    dic = dbConnecter.read_data('lists', 'id', id)[0]
+    dic = load_list(id)
+    if dic is None:
+        abort(404)
     dic['en'] = toList(dic['en'])
     dic['zh'] = toList(dic['zh'])
     if (dic['sm']):
@@ -586,7 +591,7 @@ def modify_list():
     # dic = db.lists.find_one({'id': id})
     # userdic = db.users.find_one({'username': session['username']})
     userdic = dbConnecter.read_data('users', 'username', session['username'])[0]
-    if dic['username'] == session['username'] or userdic['admin']:
+    if can_edit_list(dic, session['username'], userdic['admin']):
         info = ''
         for i in range(0, len(dic['en'])):
             info += dic['en'][i] + '\n'
@@ -601,6 +606,8 @@ def modify_list():
                                t_info=info,
                                t_admin=userdic['admin'],
                                t_listname=dic['listname'],
+                               t_priv=is_private(dic),
+                               t_owner=dic['username'] == session['username'],
                                t_username=session['username'],
                                t_captcha_image=captcha_image,
                                t_error=errorr)
@@ -661,18 +668,31 @@ def modifier():
                 s += i
         zh.append(s)
     # dic = db.lists.find_one({'id': id})
-    dic = dbConnecter.read_data('lists', 'id', id)[0]
+    dic = load_list(id)
+    if dic is None:
+        abort(404)
+    userdic = dbConnecter.read_data('users', 'username', session['username'])[0]
+    if not can_edit_list(dic, session['username'], userdic['admin']):
+        return 'No permission'
+    priv = request.form.get('priv')
+    if dic['username'] == session['username'] and priv in ('y', 'n'): # 公开性只由创建者决定
+        priv = priv == 'y'
+    else:
+        priv = is_private(dic)
     if o == 'y':
         o = True
     elif o == 'n':
         o = False
     else:
         o = dic['o']
+    if priv: # 私有表格不进官方列表
+        o = False
     dic['listname'] = listname
     dic['difficulty'] = difficulty
     dic['en'] = toStr(en)
     dic['zh'] = toStr(zh)
     dic['o'] = o
+    dic['priv'] = priv
     if sm:
         dic['sen'] = toStr(sen)
     else:
@@ -681,7 +701,9 @@ def modifier():
     # db.lists.update({'id': id}, dic)
     dbConnecter.delete_data('lists', 'id', id)
     dbConnecter.insert_data('lists',
-                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm)',
-                            (id, dic['username'], dic['listname'], dic['difficulty'], dic['en'], dic['zh'], dic['timef'], dic['o'], dic['sen'], dic['sm'])
+                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm, priv)',
+                            (id, dic['username'], dic['listname'], dic['difficulty'], dic['en'], dic['zh'], dic['timef'], dic['o'], dic['sen'], dic['sm'], dic['priv'])
                             )
+    if priv:
+        return redirect('/reciter?show_mode=private')
     return redirect('/reciter')

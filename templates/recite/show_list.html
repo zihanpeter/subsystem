@@ -27,6 +27,9 @@
         <div class="card__head">
             <div class="row">
                 <span class="chip chip--accent">Difficulty {{ t_wordlist['difficulty'] }}</span>
+                {% if t_wordlist['priv'] %}
+                <span class="chip">Private</span>
+                {% endif %}
                 <span class="chip">ID <code>{{ t_wordlist['id'] }}</code></span>
                 {% if t_stats %}
                 <span class="chip">Today {{ t_stats.done }}/{{ t_stats.target }}</span>

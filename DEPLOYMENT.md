@@ -82,6 +82,16 @@ CREATE TABLE IF NOT EXISTS daily_task (
 );
 ```
 
+私有词汇表需要给 `lists` 加一列（升级已有数据库时执行一次）：
+
+```sql
+USE subsystem;
+
+ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;
+```
+
+已有的词汇表都会保持公开（`priv = 0`）。
+
 ## 5. 配置 systemd 服务
 
 创建 `/etc/systemd/system/subsystem.service`：
