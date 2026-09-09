@@ -16,7 +16,7 @@
             <h1>{{ t_username }}</h1>
             <p class="page-head__sub">
                 <span class="chip">Registered {{ t_timef }}</span>
-                {% if t_admin and is_owner %}
+                {% if t_target_admin %}
                 <span class="chip chip--accent">Administrator</span>
                 {% endif %}
             </p>
@@ -28,6 +28,10 @@
         {% endif %}
     </div>
 
+    {% if t_msg == 'self_admin' %}
+    <p class="callout">You cannot change your own administrator status. Ask another administrator.</p>
+    {% endif %}
+
     <section class="card">
         <div class="card__head">
             <h2 class="card__title">Introduction</h2>
@@ -36,6 +40,25 @@
             {{ t_intro | safe }}
         </div>
     </section>
+
+    {% if t_admin and not is_owner %}
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Administrator access</h2>
+            <p class="card__hint">Administrators can manage public wordlists and forum posts.</p>
+        </div>
+        <form class="form__row" action="/change_admin" method="post">
+            <input type="hidden" name="username" value="{{ t_username }}">
+            {% if t_target_admin %}
+            <input type="hidden" name="admin" value="n">
+            <button class="btn btn--danger" type="submit">Revoke administrator</button>
+            {% else %}
+            <input type="hidden" name="admin" value="y">
+            <button class="btn" type="submit">Make administrator</button>
+            {% endif %}
+        </form>
+    </section>
+    {% endif %}
 
     {% if is_owner %}
     <section class="card">

@@ -127,7 +127,10 @@ def profile():
     # userdic = db.users.find_one({'username': username})
     # userlist = db.lists.find({'username': username})
     # print(username)
-    userdic = dbConnecter.read_data('users', 'username', username)[0]
+    userdics = dbConnecter.read_data('users', 'username', username)
+    if not userdics:
+        abort(404)
+    userdic = userdics[0]
     # print(userdic)
     # userlist = list(userlist)
     # articleslist = list(db.articles.find({'username': username}))
@@ -151,7 +154,25 @@ def profile():
                            # t_articleslist=articleslist,
                            t_intro=intro,
                            t_admin=admin,
+                           t_target_admin=userdic['admin'],
+                           t_msg=request.args.get('msg'),
                            t_captcha_image=captcha_image)
+
+@user_app.route('/change_admin', methods=['POST']) # 管理员任免其他用户
+def change_admin():
+    if session.get('username') == None:
+        return redirect('/login')
+    me = dbConnecter.read_data('users', 'username', session['username'])
+    if not me or not me[0]['admin']:
+        return 'No permission'
+    username = request.form.get('username')
+    if not dbConnecter.read_data('users', 'username', username):
+        abort(404)
+    if username == session['username']: # 不能改自己, 保证站里始终留有管理员
+        return redirect('/profile?username=' + username + '&msg=self_admin')
+    admin = request.form.get('admin') == 'y'
+    dbConnecter.update_data('users', 'username', username, 'admin', admin)
+    return redirect('/profile?username=' + username)
 
 @user_app.route('/change_password', methods=['POST']) # 处理更改密码信息
 def change_password():

@@ -40,6 +40,8 @@ Administrator rights:
 
 - Modify some users' non-standard personal profiles
 
+- Promote another user to administrator, or revoke that access, from the user's profile page (you cannot change your own status)
+
 -----
 # Systems Intro
 
