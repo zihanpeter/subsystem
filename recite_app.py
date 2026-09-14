@@ -27,6 +27,8 @@ recite_app.secret_key = get_config('SECRET_KEY')
     sm 是否有例句
     sen 例句
     priv 是否为私有(仅创建者可见)
+    folder_id 所属文件夹, 空字符串表示不在任何文件夹里
+             官方词表进 scope='official' 的公共文件夹, 私有词表进创建者自己 scope='private' 的文件夹
     
     CREATE TABLE lists (
         id VARCHAR(128), 
@@ -39,11 +41,27 @@ recite_app.secret_key = get_config('SECRET_KEY')
         o BOOL, 
         sm BOOl, 
         sen TEXT,
-        priv BOOL NOT NULL DEFAULT 0
+        priv BOOL NOT NULL DEFAULT 0,
+        folder_id VARCHAR(128) NOT NULL DEFAULT ''
     );
 
     -- 已有数据库升级时执行一次
     ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;
+    ALTER TABLE lists ADD COLUMN folder_id VARCHAR(128) NOT NULL DEFAULT '';
+
+    -- 词表的文件夹
+    -- scope='official': 官方栏目的公共文件夹, 只有管理员能建, 所有人都看得到
+    -- scope='private': username 自己私有栏目的文件夹, 只有他自己看得到
+    CREATE TABLE folders (
+        id VARCHAR(128) NOT NULL,
+        foldername VARCHAR(64) NOT NULL,
+        username VARCHAR(64) NOT NULL,
+        timef VARCHAR(64) NOT NULL,
+        scope VARCHAR(16) NOT NULL DEFAULT 'official',
+        PRIMARY KEY (id)
+    );
+
+    ALTER TABLE folders ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'official';
 
     -- Spaced repetition progress (per user, list, English word)
     CREATE TABLE word_progress (
@@ -75,6 +93,11 @@ try: # 老数据库缺少 priv 列时补上, 否则修改表格会丢数据
     srs_store.ensure_lists_priv_column()
 except Exception as err:
     print('lists.priv migration skipped: %s' % err)
+
+try: # 文件夹是后加的, 老数据库没有 folders 表和 lists.folder_id
+    srs_store.ensure_folder_schema()
+except Exception as err:
+    print('folder migration skipped: %s' % err)
 
 
 def toList(str):
@@ -112,6 +135,56 @@ def load_list(list_id):
         return None
     return rows[0]
 
+def current_admin(): # 返回 (用户名, 是否为管理员)
+    username = session.get('username')
+    if username == None:
+        return None, False
+    rows = dbConnecter.read_data('users', 'username', username)
+    return username, bool(rows and rows[0]['admin'])
+
+def folder_of(wordlist):
+    return wordlist.get('folder_id') or ''
+
+def scope_of(folder): # 私有栏目的文件夹是后加的, 老数据都属于官方栏目
+    return folder.get('scope') or 'official'
+
+def list_scope(wordlist): # 词表归哪个栏目的文件夹管, 用户栏目的表格不分文件夹
+    if is_private(wordlist):
+        return 'private'
+    if wordlist['o']:
+        return 'official'
+    return None
+
+def folder_scope(show_mode): # 用户栏目不分文件夹
+    return show_mode if show_mode in ('official', 'private') else None
+
+def can_be_filed(wordlist, scope, username): # 词表能不能放进这一栏的文件夹
+    if scope == None or list_scope(wordlist) != scope:
+        return False
+    return scope != 'private' or wordlist['username'] == username # 私有文件夹只装自己的表格
+
+def can_manage_folders(scope, username, admin): # 公共文件夹归管理员, 私有文件夹各管各的
+    if username == None:
+        return False
+    if scope == 'official':
+        return bool(admin)
+    return scope == 'private'
+
+def load_folders(scope, username=None):
+    rows = [i for i in dbConnecter.read_data('folders') or [] if scope_of(i) == scope]
+    if scope == 'private': # 别人的私有文件夹不该露面
+        rows = [i for i in rows if i['username'] == username]
+    rows.sort(key=lambda x: x['foldername'])
+    return rows
+
+def keep_folder(folder_id, scope): # 换了栏目的词表不留在原来的文件夹里
+    if folder_id == '':
+        return ''
+    rows = dbConnecter.read_data('folders', 'id', folder_id)
+    if not rows or scope_of(rows[0]) != scope:
+        return ''
+    return folder_id
+
 def load_list_words(list_id):
     """Load a lists row and return (row, words) or (None, None)."""
     rows = dbConnecter.read_data('lists', 'id', list_id)
@@ -126,43 +199,76 @@ def load_list_words(list_id):
 
 @recite_app.route('/reciter', methods=["GET"]) # 依据条件展示表格列表
 def reciter():
-    username = session.get('username')
+    username, admin = current_admin()
     difficulty = request.args.get('difficulty')
     key = request.args.get('key')
+    show_mode = request.args.get('show_mode')
+    if show_mode == None or (show_mode == 'private' and username == None):
+        show_mode = 'official'
+    scope = folder_scope(show_mode) # 文件夹只属于当前栏目
     rows = dbConnecter.read_data('lists') or []
-    if key != None and key != '':
+    folders = load_folders(scope, username)
+    folder_names = {i['id']: i['foldername'] for i in folders}
+    folder = request.args.get('folder') or ''
+    if folder not in folder_names: # 文件夹被删掉后回到最外层
+        folder = ''
+    counts = {}
+    for i in rows: # 文件夹里的表格数不跟着筛选变
+        if can_be_filed(i, scope, username) and folder_of(i) in folder_names:
+            counts[folder_of(i)] = counts.get(folder_of(i), 0) + 1
+    for i in folders:
+        i['size'] = counts.get(i['id'], 0)
+    searching = key != None and key != ''
+    if searching: # 按名字找的时候跨文件夹一起列出来, 不停在某个文件夹里
         rows = [i for i in rows if i['listname'] == key]
+        folder = ''
     if difficulty != None and difficulty != '' and difficulty != 'all':
         rows = [i for i in rows if str(i['difficulty']) == str(difficulty)]
     lists_o, lists_u, lists_p = [], [], []
     for i in rows:
         if is_private(i): # 私有表格只进创建者自己的栏目
-            if username != None and i['username'] == username:
-                lists_p.append(i)
+            if username == None or i['username'] != username:
+                continue
+            bucket = lists_p
         elif i['o']:
-            lists_o.append(i)
+            bucket = lists_o
         else:
-            lists_u.append(i)
+            bucket = lists_u
+        if can_be_filed(i, scope, username): # 归了档的表格只在自己的文件夹里露面
+            if not searching and folder_of(i) != folder:
+                continue
+            if folder_of(i) != folder:
+                i['folder_name'] = folder_names.get(folder_of(i), '')
+        bucket.append(i)
     lists_o.sort(key=lambda x: x['listname'])
     lists_u.sort(key=lambda x: x['timef'], reverse=True)
     lists_p.sort(key=lambda x: x['timef'], reverse=True)
-    show_mode = request.args.get('show_mode')
-    if show_mode == None or (show_mode == 'private' and username == None):
-        show_mode = 'official'
     return render_template('recite/lists.html', 
                            t_username=username, 
+                           t_admin=admin,
                            t_lists_o=lists_o, 
                            t_lists_u=lists_u,
                            t_lists_p=lists_p,
                            t_show_mode=show_mode,
-                           t_done=request.args.get('done'))
+                           t_scope=scope,
+                           t_folders=folders,
+                           t_folder=folder,
+                           t_folder_name=folder_names.get(folder, ''),
+                           t_show_folders=scope != None and not searching and folder == '',
+                           t_can_file=can_manage_folders(scope, username, admin),
+                           t_done=request.args.get('done'),
+                           t_moved=request.args.get('moved'),
+                           t_msg=request.args.get('msg'))
 
-def reciter_url(show_mode, key, difficulty, done=None): # 批量操作后回到原来的栏目和筛选
+def reciter_url(show_mode, key, difficulty, folder=None, **extra): # 操作后回到原来的栏目和筛选
     query = {'show_mode': show_mode or 'official',
              'key': key or '',
              'difficulty': difficulty or 'all'}
-    if done != None:
-        query['done'] = done
+    if folder:
+        query['folder'] = folder
+    for name, value in extra.items():
+        if value != None:
+            query[name] = value
     return '/reciter?' + urlencode(query)
 
 @recite_app.route('/bulk_visibility', methods=['POST']) # 批量切换公开/私有
@@ -181,6 +287,7 @@ def bulk_visibility():
         if is_private(dic) == priv:
             continue
         dbConnecter.update_data('lists', 'id', id, 'priv', priv)
+        dbConnecter.update_data('lists', 'id', id, 'folder_id', '') # 换了栏目就离开原来的文件夹
         if priv: # 私有表格不进官方列表
             dbConnecter.update_data('lists', 'id', id, 'o', False)
         done += 1
@@ -188,7 +295,76 @@ def bulk_visibility():
         show_mode = 'private'
     elif show_mode == 'private':
         show_mode = 'users'
-    return redirect(reciter_url(show_mode, key, difficulty, done or None))
+    return redirect(reciter_url(show_mode, key, difficulty, done=done or None))
+
+@recite_app.route('/create_folder', methods=['POST']) # 在当前栏目里建文件夹
+def create_folder():
+    username, admin = current_admin()
+    if username == None:
+        return redirect('/login')
+    scope = request.form.get('scope')
+    if not can_manage_folders(scope, username, admin):
+        return 'No permission'
+    key = request.form.get('key')
+    difficulty = request.form.get('difficulty')
+    foldername = (request.form.get('foldername') or '').strip()
+    if foldername == '':
+        return redirect(reciter_url(scope, key, difficulty, msg='folder_name_required'))
+    for i in load_folders(scope, username): # 同一栏目里同名文件夹分不清谁是谁
+        if i['foldername'] == foldername:
+            return redirect(reciter_url(scope, key, difficulty, msg='folder_exists'))
+    now_temp = time.strftime("%Y-%m-%d %H:%M", time.localtime())
+    dbConnecter.insert_data('folders',
+                            '(id, foldername, username, timef, scope)',
+                            (str(uuid.uuid1()), foldername[:64], username, now_temp, scope))
+    return redirect(reciter_url(scope, key, difficulty, msg='folder_created'))
+
+@recite_app.route('/del_folder', methods=['POST']) # 删掉空文件夹
+def del_folder():
+    username, admin = current_admin()
+    if username == None:
+        return redirect('/login')
+    scope = request.form.get('scope')
+    if not can_manage_folders(scope, username, admin):
+        return 'No permission'
+    key = request.form.get('key')
+    difficulty = request.form.get('difficulty')
+    folder = request.form.get('folder')
+    if folder not in {i['id'] for i in load_folders(scope, username)}: # 管不着的文件夹当作不存在
+        abort(404)
+    for i in dbConnecter.read_data('lists') or []: # 先把里面的词表移出去, 免得它们跟着消失
+        if folder_of(i) == folder:
+            return redirect(reciter_url(scope, key, difficulty, folder, msg='folder_not_empty'))
+    dbConnecter.delete_data('folders', 'id', folder)
+    return redirect(reciter_url(scope, key, difficulty, msg='folder_deleted'))
+
+@recite_app.route('/bulk_folder', methods=['POST']) # 批量把词表移入/移出文件夹
+def bulk_folder():
+    username, admin = current_admin()
+    if username == None:
+        return redirect('/login')
+    scope = request.form.get('scope')
+    if not can_manage_folders(scope, username, admin):
+        return 'No permission'
+    key = request.form.get('key')
+    difficulty = request.form.get('difficulty')
+    folder = request.form.get('folder') # 现在待的文件夹, 操作完回到这里
+    if request.form.get('mode') == 'out':
+        target = ''
+    else:
+        target = request.form.get('target_folder') or ''
+    if target != '' and target not in {i['id'] for i in load_folders(scope, username)}:
+        abort(404)
+    moved = 0
+    for id in request.form.getlist('ids'):
+        dic = load_list(id)
+        if dic is None or not can_be_filed(dic, scope, username): # 只整理本栏目里自己管得着的词表
+            continue
+        if folder_of(dic) == target:
+            continue
+        dbConnecter.update_data('lists', 'id', id, 'folder_id', target)
+        moved += 1
+    return redirect(reciter_url(scope, key, difficulty, folder, moved=moved or None))
 
 @recite_app.route('/create') # 提供创建词汇表的页面
 def create():
@@ -722,12 +898,13 @@ def modifier():
         o = dic['o']
     if priv: # 私有表格不进官方列表
         o = False
+    dic['o'] = o
+    dic['priv'] = priv
+    dic['folder_id'] = keep_folder(folder_of(dic), list_scope(dic))
     dic['listname'] = listname
     dic['difficulty'] = difficulty
     dic['en'] = toStr(en)
     dic['zh'] = toStr(zh)
-    dic['o'] = o
-    dic['priv'] = priv
     if sm:
         dic['sen'] = toStr(sen)
     else:
@@ -736,8 +913,8 @@ def modifier():
     # db.lists.update({'id': id}, dic)
     dbConnecter.delete_data('lists', 'id', id)
     dbConnecter.insert_data('lists',
-                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm, priv)',
-                            (id, dic['username'], dic['listname'], dic['difficulty'], dic['en'], dic['zh'], dic['timef'], dic['o'], dic['sen'], dic['sm'], dic['priv'])
+                            '(id, username, listname, difficulty, en, zh, timef, o, sen, sm, priv, folder_id)',
+                            (id, dic['username'], dic['listname'], dic['difficulty'], dic['en'], dic['zh'], dic['timef'], dic['o'], dic['sen'], dic['sm'], dic['priv'], dic['folder_id'])
                             )
     if priv:
         return redirect('/reciter?show_mode=private')

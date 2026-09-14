@@ -8,6 +8,7 @@
 {% set cur_key = request.args.get('key') or '' %}
 {% set cur_difficulty = request.args.get('difficulty') or 'all' %}
 {% set filters = {'key': cur_key, 'difficulty': cur_difficulty} | urlencode %}
+{% set tab_url = '/reciter?show_mode=' ~ t_show_mode ~ '&' ~ filters %}
 <div class="stack">
     <div class="page-head">
         <div>
@@ -56,6 +57,7 @@
                         </select>
                     </div>
                     <input type="hidden" name="show_mode" value="{{ t_show_mode }}">
+                    <input type="hidden" name="folder" value="{{ t_folder }}">
                     <button class="btn btn--ghost" type="submit" name="mode" value="OK">Apply</button>
                 </div>
             </form>
@@ -73,6 +75,62 @@
         {% endif %}
     </div>
 
+    {% if t_show_folders %}
+    <section class="card">
+        <div class="card__head">
+            <h2 class="card__title">Folders</h2>
+            <p class="card__hint">
+                {% if t_can_file %}
+                Lists filed into a folder only show up inside it.
+                {% else %}
+                Open a folder to see the official lists inside it.
+                {% endif %}
+            </p>
+        </div>
+        <div class="row">
+            {% for i in t_folders %}
+            <a class="btn btn--ghost btn--sm" href="{{ tab_url }}&folder={{ i['id'] }}">
+                {{ i['foldername'] }} <span class="chip__num">{{ i['size'] }}</span>
+            </a>
+            {% endfor %}
+            {% if not t_folders %}
+            <span class="text-muted">No folder yet.</span>
+            {% endif %}
+        </div>
+        {% if t_can_file %}
+        <form class="form__row card__section" action="/create_folder" method="post">
+            <div class="field">
+                <label class="field__label" for="foldername">New folder</label>
+                <input id="foldername" type="text" name="foldername" placeholder="Folder name"
+                       maxlength="64" required>
+            </div>
+            <input type="hidden" name="scope" value="{{ t_scope }}">
+            <input type="hidden" name="key" value="{{ cur_key }}">
+            <input type="hidden" name="difficulty" value="{{ cur_difficulty }}">
+            <button class="btn" type="submit">Create folder</button>
+        </form>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if t_folder %}
+    <div class="row">
+        <a class="btn btn--ghost btn--sm" href="{{ tab_url }}">
+            &larr; All {{ 'private' if t_show_mode == 'private' else 'official' }} lists
+        </a>
+        <span class="chip chip--accent">Folder {{ t_folder_name }}</span>
+        {% if t_can_file %}
+        <form action="/del_folder" method="post">
+            <input type="hidden" name="scope" value="{{ t_scope }}">
+            <input type="hidden" name="folder" value="{{ t_folder }}">
+            <input type="hidden" name="key" value="{{ cur_key }}">
+            <input type="hidden" name="difficulty" value="{{ cur_difficulty }}">
+            <button class="btn btn--danger btn--sm" type="submit">Delete folder</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if t_show_mode == 'private' %}
     <p class="text-muted">Only you can open these lists.</p>
     {% endif %}
@@ -81,16 +139,49 @@
     <p class="callout">Visibility updated for {{ t_done }} wordlist(s).</p>
     {% endif %}
 
+    {% if t_moved %}
+    <p class="callout">Moved {{ t_moved }} wordlist(s).</p>
+    {% endif %}
+
+    {% if t_msg == 'folder_created' %}
+    <p class="callout">Folder created.</p>
+    {% elif t_msg == 'folder_deleted' %}
+    <p class="callout">Folder deleted.</p>
+    {% elif t_msg == 'folder_exists' %}
+    <p class="callout">A folder with that name already exists.</p>
+    {% elif t_msg == 'folder_name_required' %}
+    <p class="callout">A folder needs a name.</p>
+    {% elif t_msg == 'folder_not_empty' %}
+    <p class="callout">Move every wordlist out of this folder before deleting it.</p>
+    {% endif %}
+
     <form class="stack stack--tight" action="/bulk_visibility" method="post">
         <input type="hidden" name="show_mode" value="{{ t_show_mode }}">
         <input type="hidden" name="key" value="{{ cur_key }}">
         <input type="hidden" name="difficulty" value="{{ cur_difficulty }}">
+        <input type="hidden" name="folder" value="{{ t_folder }}">
 
         {% if current_user %}
         <div class="row">
             <span class="text-muted">Tick your own lists, then:</span>
             <button class="btn btn--sm" type="submit" name="priv" value="y">Make private</button>
             <button class="btn btn--sm btn--ghost" type="submit" name="priv" value="n">Make public</button>
+        </div>
+        {% endif %}
+
+        {% if t_can_file and t_folders %}
+        <input type="hidden" name="scope" value="{{ t_scope }}">
+        <div class="row">
+            <span class="text-muted">
+                Tick {{ 'any official list' if t_show_mode == 'official' else 'your lists' }}, then:
+            </span>
+            <select name="target_folder" aria-label="Folder to move into">
+                {% for i in t_folders %}
+                <option value="{{ i['id'] }}" {% if i['id'] == t_folder %}selected{% endif %}>{{ i['foldername'] }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn--sm" type="submit" formaction="/bulk_folder" name="mode" value="in">Move into folder</button>
+            <button class="btn btn--sm btn--ghost" type="submit" formaction="/bulk_folder" name="mode" value="out">Move out of folder</button>
         </div>
         {% endif %}
 
@@ -112,13 +203,18 @@
                     <tr>
                         {% if current_user %}
                         <td>
-                            {% if i['username'] == current_user %}
+                            {% if i['username'] == current_user or t_can_file %}
                             <input type="checkbox" name="ids" value="{{ i['id'] }}"
                                    aria-label="Select {{ i['listname'] }}">
                             {% endif %}
                         </td>
                         {% endif %}
-                        <td><a href="/show_list?id={{ i['id'] }}">{{ i['listname'] }}</a></td>
+                        <td>
+                            <a href="/show_list?id={{ i['id'] }}">{{ i['listname'] }}</a>
+                            {% if i.get('folder_name') %}
+                            <span class="chip">{{ i['folder_name'] }}</span>
+                            {% endif %}
+                        </td>
                         <td><a href="/profile?username={{ i['username'] }}">{{ i['username'] }}</a></td>
                         <td><span class="chip">Level {{ i['difficulty'] }}</span></td>
                         <td class="num">{{ i['timef'] }}</td>
@@ -128,7 +224,9 @@
             </table>
             {% if not lists %}
             <p class="table-empty">
-                {% if t_show_mode == 'private' %}
+                {% if t_folder %}
+                This folder has no wordlist yet.
+                {% elif t_show_mode == 'private' %}
                 You have no private wordlist yet.
                 {% else %}
                 No wordlist matches this filter.

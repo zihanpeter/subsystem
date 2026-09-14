@@ -1,4 +1,4 @@
-"""MySQL helpers for Reciter spaced-repetition tables."""
+"""MySQL helpers and schema migrations for the Reciter tables."""
 import json
 
 import mysql.connector
@@ -28,6 +28,25 @@ def ensure_lists_priv_column():
     rows = _run("SHOW COLUMNS FROM lists LIKE 'priv';", fetch=True) or []
     if not rows:
         _run('ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;')
+
+
+def ensure_folder_schema():
+    """Create the folders table and lists.folder_id for wordlist folders."""
+    _run(
+        'CREATE TABLE IF NOT EXISTS folders ('
+        'id VARCHAR(128) NOT NULL, '
+        'foldername VARCHAR(64) NOT NULL, '
+        'username VARCHAR(64) NOT NULL, '
+        'timef VARCHAR(64) NOT NULL, '
+        "scope VARCHAR(16) NOT NULL DEFAULT 'official', "
+        'PRIMARY KEY (id));'
+    )
+    rows = _run("SHOW COLUMNS FROM lists LIKE 'folder_id';", fetch=True) or []
+    if not rows:
+        _run("ALTER TABLE lists ADD COLUMN folder_id VARCHAR(128) NOT NULL DEFAULT '';")
+    rows = _run("SHOW COLUMNS FROM folders LIKE 'scope';", fetch=True) or []
+    if not rows: # 私有词表的文件夹是后加的, 之前建的都属于官方栏目
+        _run("ALTER TABLE folders ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'official';")
 
 
 def default_record(today_iso):
