@@ -143,6 +143,10 @@
     <p class="callout">Moved {{ t_moved }} wordlist(s).</p>
     {% endif %}
 
+    {% if t_published %}
+    <p class="callout">Publication updated for {{ t_published }} wordlist(s).</p>
+    {% endif %}
+
     {% if t_msg == 'folder_created' %}
     <p class="callout">Folder created.</p>
     {% elif t_msg == 'folder_deleted' %}
@@ -166,6 +170,14 @@
             <span class="text-muted">Tick your own lists, then:</span>
             <button class="btn btn--sm" type="submit" name="priv" value="y">Make private</button>
             <button class="btn btn--sm btn--ghost" type="submit" name="priv" value="n">Make public</button>
+        </div>
+        {% endif %}
+
+        {% if t_admin and t_show_mode != 'private' %}
+        <div class="row">
+            <span class="text-muted">Tick any public list, then:</span>
+            <button class="btn btn--sm" type="submit" formaction="/bulk_official" name="o" value="y">Make official</button>
+            <button class="btn btn--sm btn--ghost" type="submit" formaction="/bulk_official" name="o" value="n">Make unofficial</button>
         </div>
         {% endif %}
 
@@ -203,7 +215,7 @@
                     <tr>
                         {% if current_user %}
                         <td>
-                            {% if i['username'] == current_user or t_can_file %}
+                            {% if i['username'] == current_user or t_can_file or (t_admin and t_show_mode != 'private') %}
                             <input type="checkbox" name="ids" value="{{ i['id'] }}"
                                    aria-label="Select {{ i['listname'] }}">
                             {% endif %}

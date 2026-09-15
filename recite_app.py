@@ -258,6 +258,7 @@ def reciter():
                            t_can_file=can_manage_folders(scope, username, admin),
                            t_done=request.args.get('done'),
                            t_moved=request.args.get('moved'),
+                           t_published=request.args.get('published'),
                            t_msg=request.args.get('msg'))
 
 def reciter_url(show_mode, key, difficulty, folder=None, **extra): # 操作后回到原来的栏目和筛选
@@ -296,6 +297,37 @@ def bulk_visibility():
     elif show_mode == 'private':
         show_mode = 'users'
     return redirect(reciter_url(show_mode, key, difficulty, done=done or None))
+
+@recite_app.route('/bulk_official', methods=['POST']) # 管理员批量切换官方/非官方
+def bulk_official():
+    username, admin = current_admin()
+    if username == None:
+        return redirect('/login')
+    if not admin:
+        return 'No permission'
+    key = request.form.get('key')
+    difficulty = request.form.get('difficulty')
+    folder = request.form.get('folder')
+    official = request.form.get('o') == 'y'
+    published = 0
+    for id in request.form.getlist('ids'):
+        dic = load_list(id)
+        if dic is None or is_private(dic): # 私有表格不进官方列表
+            continue
+        if bool(dic['o']) == official:
+            continue
+        dbConnecter.update_data('lists', 'id', id, 'o', official)
+        if not official: # 离开官方栏目就不留在公共文件夹里
+            dbConnecter.update_data('lists', 'id', id, 'folder_id', '')
+        published += 1
+    if official: # 跟着表格去它们现在所在的栏目
+        show_mode = 'official'
+        folder = None
+    else:
+        show_mode = 'users'
+        folder = None
+    return redirect(reciter_url(show_mode, key, difficulty, folder,
+                                published=published or None))
 
 @recite_app.route('/create_folder', methods=['POST']) # 在当前栏目里建文件夹
 def create_folder():
