@@ -45,10 +45,6 @@ recite_app.secret_key = get_config('SECRET_KEY')
         folder_id VARCHAR(128) NOT NULL DEFAULT ''
     );
 
-    -- 已有数据库升级时执行一次
-    ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;
-    ALTER TABLE lists ADD COLUMN folder_id VARCHAR(128) NOT NULL DEFAULT '';
-
     -- 词表的文件夹
     -- scope='official': 官方栏目的公共文件夹, 只有管理员能建, 所有人都看得到
     -- scope='private': username 自己私有栏目的文件夹, 只有他自己看得到
@@ -60,8 +56,6 @@ recite_app.secret_key = get_config('SECRET_KEY')
         scope VARCHAR(16) NOT NULL DEFAULT 'official',
         PRIMARY KEY (id)
     );
-
-    ALTER TABLE folders ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'official';
 
     -- Spaced repetition progress (per user, list, English word)
     CREATE TABLE word_progress (
@@ -88,16 +82,6 @@ recite_app.secret_key = get_config('SECRET_KEY')
         PRIMARY KEY (username, list_id, day)
     );
 '''
-
-try: # 老数据库缺少 priv 列时补上, 否则修改表格会丢数据
-    srs_store.ensure_lists_priv_column()
-except Exception as err:
-    print('lists.priv migration skipped: %s' % err)
-
-try: # 文件夹是后加的, 老数据库没有 folders 表和 lists.folder_id
-    srs_store.ensure_folder_schema()
-except Exception as err:
-    print('folder migration skipped: %s' % err)
 
 
 def toList(str):

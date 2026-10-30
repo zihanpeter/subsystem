@@ -1,52 +1,26 @@
-"""MySQL helpers and schema migrations for the Reciter tables."""
+"""SQLite helpers for the Reciter tables."""
 import json
-
-import mysql.connector
+import sqlite3
 
 from lib.dbConnecter import connect_to_db
 
 
 def _run(sql, params=None, fetch=False, dictionary=False):
     connection = connect_to_db()
-    cursor = connection.cursor(dictionary=dictionary)
+    cursor = connection.cursor()
     try:
         cursor.execute(sql, params or ())
         if fetch:
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows] if dictionary else [tuple(row) for row in rows]
         connection.commit()
         return cursor.rowcount
-    except mysql.connector.Error as err:
+    except sqlite3.Error as err:
         print('srs_store Error: %s' % err)
         raise
     finally:
         cursor.close()
         connection.close()
-
-
-def ensure_lists_priv_column():
-    """Add lists.priv on databases created before private wordlists existed."""
-    rows = _run("SHOW COLUMNS FROM lists LIKE 'priv';", fetch=True) or []
-    if not rows:
-        _run('ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;')
-
-
-def ensure_folder_schema():
-    """Create the folders table and lists.folder_id for wordlist folders."""
-    _run(
-        'CREATE TABLE IF NOT EXISTS folders ('
-        'id VARCHAR(128) NOT NULL, '
-        'foldername VARCHAR(64) NOT NULL, '
-        'username VARCHAR(64) NOT NULL, '
-        'timef VARCHAR(64) NOT NULL, '
-        "scope VARCHAR(16) NOT NULL DEFAULT 'official', "
-        'PRIMARY KEY (id));'
-    )
-    rows = _run("SHOW COLUMNS FROM lists LIKE 'folder_id';", fetch=True) or []
-    if not rows:
-        _run("ALTER TABLE lists ADD COLUMN folder_id VARCHAR(128) NOT NULL DEFAULT '';")
-    rows = _run("SHOW COLUMNS FROM folders LIKE 'scope';", fetch=True) or []
-    if not rows: # 私有词表的文件夹是后加的, 之前建的都属于官方栏目
-        _run("ALTER TABLE folders ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'official';")
 
 
 def default_record(today_iso):
@@ -62,7 +36,7 @@ def default_record(today_iso):
 def fetch_progress_map(username, list_id):
     rows = _run(
         'SELECT word, level, next_review, seen, correct, wrong '
-        'FROM word_progress WHERE username = %s AND list_id = %s;',
+        'FROM word_progress WHERE username = ? AND list_id = ?;',
         (username, list_id),
         fetch=True,
         dictionary=True,
@@ -93,7 +67,7 @@ def ensure_progress_rows(username, list_id, words, today_iso):
         _run(
             'INSERT INTO word_progress '
             '(username, list_id, word, level, next_review, seen, correct, wrong) '
-            'VALUES (%s, %s, %s, %s, %s, %s, %s, %s);',
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?);',
             (username, list_id, word, rec['level'], rec['next_review'],
              rec['seen'], rec['correct'], rec['wrong']),
         )
@@ -103,9 +77,9 @@ def ensure_progress_rows(username, list_id, words, today_iso):
 
 def save_progress(username, list_id, word, record):
     _run(
-        'UPDATE word_progress SET level = %s, next_review = %s, seen = %s, '
-        'correct = %s, wrong = %s '
-        'WHERE username = %s AND list_id = %s AND word = %s;',
+        'UPDATE word_progress SET level = ?, next_review = ?, seen = ?, '
+        'correct = ?, wrong = ? '
+        'WHERE username = ? AND list_id = ? AND word = ?;',
         (int(record['level']), record['next_review'], int(record['seen']),
          int(record['correct']), int(record['wrong']),
          username, list_id, word),
@@ -115,7 +89,7 @@ def save_progress(username, list_id, word, record):
 def fetch_daily(username, list_id, day_iso):
     rows = _run(
         'SELECT target_json, done_json, retry_json FROM daily_task '
-        'WHERE username = %s AND list_id = %s AND day = %s;',
+        'WHERE username = ? AND list_id = ? AND day = ?;',
         (username, list_id, day_iso),
         fetch=True,
         dictionary=True,
@@ -139,17 +113,17 @@ def save_daily(username, list_id, day_iso, state):
         _run(
             'INSERT INTO daily_task '
             '(username, list_id, day, target_json, done_json, retry_json) '
-            'VALUES (%s, %s, %s, %s, %s, %s);',
+            'VALUES (?, ?, ?, ?, ?, ?);',
             (username, list_id, day_iso, target, done, retry),
         )
     else:
         _run(
-            'UPDATE daily_task SET target_json = %s, done_json = %s, retry_json = %s '
-            'WHERE username = %s AND list_id = %s AND day = %s;',
+            'UPDATE daily_task SET target_json = ?, done_json = ?, retry_json = ? '
+            'WHERE username = ? AND list_id = ? AND day = ?;',
             (target, done, retry, username, list_id, day_iso),
         )
 
 
 def delete_list_progress(list_id):
-    _run('DELETE FROM word_progress WHERE list_id = %s;', (list_id,))
-    _run('DELETE FROM daily_task WHERE list_id = %s;', (list_id,))
+    _run('DELETE FROM word_progress WHERE list_id = ?;', (list_id,))
+    _run('DELETE FROM daily_task WHERE list_id = ?;', (list_id,))

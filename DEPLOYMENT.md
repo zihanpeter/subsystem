@@ -4,9 +4,8 @@
 
 ## 1. 前置条件
 
-- 服务器已安装 Python 3.10+、MySQL、systemd
+- 服务器已安装 Python 3.10+、systemd
 - 项目已放到目标目录（示例：`/opt/subsystem`）
-- MySQL 中已创建数据库：`subsystem`
 
 > 说明：当前代码已改为 **只从项目根目录 `.env` 读取配置**，不会再从环境变量读取。
 
@@ -18,7 +17,7 @@
 cd /opt/subsystem
 python3 -m venv .venv
 .venv/bin/python -m pip install -U pip
-.venv/bin/python -m pip install flask gunicorn markdown bleach mysql-connector-python
+.venv/bin/python -m pip install flask gunicorn markdown bleach captcha
 ```
 
 验证 Gunicorn：
@@ -33,7 +32,6 @@ python3 -m venv .venv
 
 ```bash
 SECRET_KEY=replace_with_a_strong_secret
-MYSQL_PASSWORD=replace_with_mysql_password
 ```
 
 建议权限收紧：
@@ -42,55 +40,52 @@ MYSQL_PASSWORD=replace_with_mysql_password
 chmod 600 /opt/subsystem/.env
 ```
 
-## 4. 准备 MySQL
+## 4. 数据存储（SQLite）
 
-代码当前连接配置在 `lib/dbConnecter.py` 中：
+数据存在项目根目录下的 `cache/subsystem.db`（路径写在 `lib/dbConnecter.py` 的 `DB_PATH`）。
 
-- host: `localhost`
-- user: `root`
-- database: `subsystem`
-- password: 从 `.env` 中 `MYSQL_PASSWORD` 读取
+- 首次启动时会自动创建 `cache/` 目录和所有表，不需要手动建表。
+- 建表语句集中在 `lib/dbConnecter.py` 的 `SCHEMA` 里。
+- `cache/` 已加入 `.gitignore`，里面有用户密码，不要提交到仓库。
 
-请确认 `root@localhost` 可用该密码登录，且有 `subsystem` 库权限。
+SQLite 需要在 `cache/` 目录里创建 `-wal`/`-shm` 临时文件，所以运行服务的用户（下面 systemd 里是 `www-data`）必须对**整个目录**有写权限：
 
-Reciter 间隔重复需要额外两张表（首次部署或升级时执行一次）：
-
-```sql
-USE subsystem;
-
-CREATE TABLE IF NOT EXISTS word_progress (
-    username VARCHAR(64) NOT NULL,
-    list_id VARCHAR(128) NOT NULL,
-    word VARCHAR(255) NOT NULL,
-    level TINYINT NOT NULL DEFAULT 0,
-    next_review DATE NOT NULL,
-    seen INT NOT NULL DEFAULT 0,
-    correct INT NOT NULL DEFAULT 0,
-    wrong INT NOT NULL DEFAULT 0,
-    PRIMARY KEY (username, list_id, word),
-    INDEX idx_due (username, list_id, next_review)
-);
-
-CREATE TABLE IF NOT EXISTS daily_task (
-    username VARCHAR(64) NOT NULL,
-    list_id VARCHAR(128) NOT NULL,
-    day DATE NOT NULL,
-    target_json TEXT NOT NULL,
-    done_json TEXT NOT NULL,
-    retry_json TEXT NOT NULL,
-    PRIMARY KEY (username, list_id, day)
-);
+```bash
+sudo mkdir -p /opt/subsystem/cache
+sudo chown -R www-data:www-data /opt/subsystem/cache
 ```
 
-私有词汇表需要给 `lists` 加一列（升级已有数据库时执行一次）：
+### 4.1 从旧的 MySQL 迁移数据（只需执行一次）
 
-```sql
-USE subsystem;
+迁移脚本 `scripts/migrate_mysql_to_sqlite.py` 只读 MySQL，不会改动原数据；先写临时文件，逐表核对行数一致后才落到 `cache/subsystem.db`。
 
-ALTER TABLE lists ADD COLUMN priv BOOL NOT NULL DEFAULT 0;
+在服务器上（MySQL 所在机器）执行：
+
+```bash
+cd /opt/subsystem
+sudo systemctl stop subsystem                       # 停服务, 避免迁移期间有新写入丢失
+.venv/bin/python -m pip install mysql-connector-python   # 旧环境里一般已经有了
+.venv/bin/python scripts/migrate_mysql_to_sqlite.py     # 默认 root@localhost/subsystem, 密码读 .env 的 MYSQL_PASSWORD
+sudo chown -R www-data:www-data cache
+sudo systemctl start subsystem
 ```
 
-已有的词汇表都会保持公开（`priv = 0`）。
+常用参数：
+
+- `--user` / `--password` / `--database` / `--host` / `--port`：MySQL 连接信息。`.env` 里没有 `MYSQL_PASSWORD` 又没传 `--password` 时会交互输入。
+- `--output`：SQLite 文件路径，默认 `cache/subsystem.db`。
+- `--force`：目标文件已存在时覆盖，原文件会先改名为 `subsystem.db.bak`。
+
+想在本地拿到一份数据，可以用 SSH 隧道连服务器上的 MySQL：
+
+```bash
+ssh -N -L 3307:127.0.0.1:3306 user@your-server      # 另开一个终端保持运行
+python scripts/migrate_mysql_to_sqlite.py --port 3307 --password '你的MySQL密码'
+```
+
+也可以直接把服务器上迁好的 `cache/subsystem.db` 用 `scp` 拷下来（先停服务，或用 `sqlite3 cache/subsystem.db ".backup /tmp/subsystem.db"` 导出一份一致的副本）。
+
+确认网站运行正常后，`.env` 里的 `MYSQL_PASSWORD` 和服务器上的 MySQL 就可以不要了。
 
 ## 5. 配置 systemd 服务
 
@@ -141,6 +136,12 @@ sudo journalctl -u subsystem -f
 sudo journalctl -u subsystem -n 200 --no-pager
 ```
 
+备份数据库（服务运行中也可以执行）：
+
+```bash
+sqlite3 /opt/subsystem/cache/subsystem.db ".backup /opt/subsystem/cache/backup-$(date +%F).db"
+```
+
 ## 8. 常见问题排查
 
 ### 8.1 `No module named gunicorn`
@@ -152,26 +153,12 @@ cd /opt/subsystem
 .venv/bin/python -m pip install gunicorn
 ```
 
-### 8.2 `Access denied for user 'root'@'localhost'`
+### 8.2 `unable to open database file` / `attempt to write a readonly database`
 
-原因：`.env` 中 `MYSQL_PASSWORD` 与 MySQL 实际密码不一致。
-
-排查：
+原因：运行服务的用户对 `cache/` 目录或其中的文件没有写权限（迁移脚本用 root/sudo 跑过之后最常见）。
 
 ```bash
-cd /opt/subsystem
-.venv/bin/python - <<'PY'
-import mysql.connector
-from lib.config_loader import get_config
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password=get_config("MYSQL_PASSWORD"),
-    database="subsystem",
-)
-print("connected ok")
-conn.close()
-PY
+sudo chown -R www-data:www-data /opt/subsystem/cache
 ```
 
 ### 8.3 `curl 127.0.0.1:5050` 连接被拒绝
